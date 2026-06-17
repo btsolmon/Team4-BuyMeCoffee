@@ -11,13 +11,63 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id        String   @id @default(nanoid())
+  email     String   @unique
+  password  String
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profileId String  @unique
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  bankCard BankCard?
+
+  sentDonations     Donation[] @relation("SentDonations")
+  receivedDonations Donation[] @relation("ReceivedDonations")
+}
+
+model Profile {
+  id              String   @id @default(nanoid())
+  name            String
+  about           String?
+  avatarImage     String?
+  socialMediaURL  String?
+  backgroundImage String?
+  successMessage  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User?
+}
+
+model BankCard {
+  id         String   @id @default(nanoid())
+  country    String
+  firstName  String
+  lastName   String
+  cardNumber String
+  expiryDate DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 model Donation {
-  id          String   @id @default(nanoid())
+  id                      String   @id @default(nanoid())
   amount                  Int
-  specialMessage          String?  
+  specialMessage          String?
   socialURLOrBuyMeACoffee String?
-  donorId                 Int
-  recipientId             Int
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+
+  donorId     String?
+  recipientId String
+
+  donor     User? @relation("SentDonations", fields: [donorId], references: [id], onDelete: SetNull)
+  recipient User  @relation("ReceivedDonations", fields: [recipientId], references: [id], onDelete: Cascade)
 }
