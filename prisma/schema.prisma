@@ -13,8 +13,8 @@ datasource db {
 }
 model Donation {
   id          String   @id @default(nanoid())
-amount                  Int
-  specialMessage          String?  // Хэрэв заавал байх албагүй бол ? тавина
+  amount                  Int
+  specialMessage          String?  
   socialURLOrBuyMeACoffee String?
   donorId                 Int
   recipientId             Int
