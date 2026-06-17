@@ -1,43 +1,58 @@
-export const Header = () => {
+import { Coffee, ChevronDown } from "lucide-react";
+import React from "react";
+
+interface HeaderProps {
+  profileRef: React.RefObject<HTMLDivElement | null>;
+  profileOpen: boolean;
+  setProfileOpen: (open: boolean | ((prevState: boolean) => boolean)) => void;
+}
+
+export default function Header({
+  profileRef,
+  profileOpen,
+  setProfileOpen,
+}: HeaderProps) {
   return (
-    <div className="py-2 px-4 bg-white flex w-full flex justify-center">
-      <div className="flex justify-between items-center container">
-        <div className="flex gap-2 items-center ">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M17 8H18C19.0609 8 20.0783 8.42143 20.8284 9.17157C21.5786 9.92172 22 10.9391 22 12C22 13.0609 21.5786 14.0783 20.8284 14.8284C20.0783 15.5786 19.0609 16 18 16H17M17 8H3V17C3 18.0609 3.42143 19.0783 4.17157 19.8284C4.92172 20.5786 5.93913 21 7 21H13C14.0609 21 15.0783 20.5786 15.8284 19.8284C16.5786 19.0783 17 18.0609 17 17V8ZM6 2V4M10 2V4M14 2V4"
-              stroke="black"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <h1 className="text-[16px] font-bold">Buy Me Coffee</h1>
-        </div>
-        <div className="px-4 py-2 flex gap-2 items-center">
-          <p>Jake</p>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4 6L8 10L12 6"
-              stroke="#09090B"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
+    // Top bar
+    <header className="flex h-16 items-center justify-between px-10">
+      <div className="flex items-center gap-2">
+        <Coffee size={24} strokeWidth={2.25} />
+        <span className="text-[16px] font-bold">Buy Me Coffee</span>
       </div>
-    </div>
+      <div className="relative" ref={profileRef}>
+        <button
+          onClick={() => setProfileOpen((v) => !v)}
+          aria-haspopup="menu"
+          aria-expanded={profileOpen}
+          className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+        >
+          <div
+            className="rounded-full"
+            style={{
+              width: 40,
+              height: 40,
+              background: "linear-gradient(135deg, #38bdf8, #1e293b)",
+            }}
+          />
+          <span className="text-sm font-medium mr-10">Jake</span>
+          <ChevronDown
+            size={16}
+            className={`text-gray-500 transition-transform ${
+              profileOpen ? "rotate-180" : ""
+            }`}
+          />{" "}
+        </button>{" "}
+        {profileOpen && (
+          <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+            <button
+              onClick={() => setProfileOpen(false)}
+              className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              Log out
+            </button>
+          </div>
+        )}
+      </div>{" "}
+    </header>
   );
-};
+}
