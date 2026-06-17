@@ -11,13 +11,59 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
 model Donation {
-  id          String   @id @default(nanoid())
-amount                  Int
-  specialMessage          String?  // Хэрэв заавал байх албагүй бол ? тавина
+  id                      String   @id @default(nanoid())
+  amount                  Int
+  specialMessage          String?
   socialURLOrBuyMeACoffee String?
-  donorId                 Int
-  recipientId             Int
+  donor                   User     @relation("Donor", fields: [donorId], references: [id])
+  donorId                 String
+  recipient               User     @relation("Recipient", fields: [recipientId], references: [id])
+  recipientId             String
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(nanoid())
+  email     String   @unique
+  password  String
+  username  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId String?  @unique
+
+  bankCard BankCard?
+
+  receivedDonations Donation[] @relation("Recipient")
+  sentDonations     Donation[] @relation("Donor")
+}
+
+model Profile {
+  id              String   @id @default(nanoid())
+  name            String
+  about           String?
+  avatarImage     String?
+  socialMediaURL  String?
+  backgroundImage String?
+  successMessage  String?
+  user            User?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model BankCard {
+  id         String   @id @default(nanoid())
+  country    String
+  firstName  String
+  lastName   String
+  cardNumber String
+  expiryDate DateTime
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
