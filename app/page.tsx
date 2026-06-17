@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Coffee, Copy, ExternalLink } from "lucide-react";
-import Header from "./components/Header";
+import {Header} from "./components/Header";
 import Sidebar from "./components/Sidebar";
 
 /* ----------------------------- Types & data ----------------------------- */

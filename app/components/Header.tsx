@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Coffee, ChevronDown } from "lucide-react";
 import React from "react";
 
@@ -7,13 +8,8 @@ interface HeaderProps {
   setProfileOpen: (open: boolean | ((prevState: boolean) => boolean)) => void;
 }
 
-export default function Header({
-  profileRef,
-  profileOpen,
-  setProfileOpen,
-}: HeaderProps) {
+export function Header({ profileRef, profileOpen, setProfileOpen }: any) {
   return (
-    // Top bar
     <header className="flex h-16 items-center justify-between px-10">
       <div className="flex items-center gap-2">
         <Coffee size={24} strokeWidth={2.25} />
@@ -21,7 +17,7 @@ export default function Header({
       </div>
       <div className="relative" ref={profileRef}>
         <button
-          onClick={() => setProfileOpen((v) => !v)}
+          onClick={() => setProfileOpen((v: boolean) => !v)}
           aria-haspopup="menu"
           aria-expanded={profileOpen}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
