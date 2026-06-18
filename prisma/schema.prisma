@@ -35,7 +35,7 @@ model Profile {
   about           String?
   avatarImage     String?
   socialMediaURL  String?
-  backgroundImage String?
+  backgroundImage String? 
   successMessage  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -58,9 +58,6 @@ model BankCard {
 }
 
 model Donation {
-  id                      String   @id @default(nanoid())
-  amount                  Int
-  specialMessage          String?
   id                      String   @id @default(nanoid())
   amount                  Int
   specialMessage          String?

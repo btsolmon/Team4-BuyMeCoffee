@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Header from "../components/Header";
+import { Header } from "../components/Header";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [profileOpen, setProfileOpen] = useState(false);
