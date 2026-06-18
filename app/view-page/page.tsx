@@ -23,10 +23,11 @@ export default async function CreatorPreviewPage() {
           <div className="relative z-10 -mt-12 flex gap-6 items-start">
             <div className="flex flex-col gap-4 w-1/2">
               <ProfileInfo
-                name={profile.name}
-                username={profile.name}
-                about={profile.about ?? ""}
-                avatar={profile.avatarImage ?? ""}
+                profileId={profile.id}
+                currentAvatar={profile.avatarImage ?? null}
+                currentName={profile.name}
+                currentAbout={profile.about ?? null}
+                username="spacerulz44"
               />
               <Supporter name={profile.name} />
             </div>

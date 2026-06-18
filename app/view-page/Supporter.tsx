@@ -17,7 +17,7 @@ export const Supporter = ({ name }: { name: string }) => {
   const hasSupporters = supporters && supporters.length > 0;
 
   return (
-    <div className="p-6 bg-white rounded-xl border border-[#E4E4E7] space-y-6 md:col-span-2">
+    <div className="p-6 bg-white rounded-xl border border-[#E4E4E7] space-y-6 ">
       <h2 className="text-[18px] font-bold text-gray-900">Recent Supporters</h2>
 
       {hasSupporters ? (
