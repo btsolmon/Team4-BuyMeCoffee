@@ -61,6 +61,9 @@ model Donation {
   id                      String   @id @default(nanoid())
   amount                  Int
   specialMessage          String?
+  id                      String   @id @default(nanoid())
+  amount                  Int
+  specialMessage          String?
   socialURLOrBuyMeACoffee String?
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

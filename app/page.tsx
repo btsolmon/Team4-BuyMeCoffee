@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Coffee, Copy, ExternalLink } from "lucide-react";
-import Header from "./components/Header";
+import {Header} from "./components/Header";
+import Sidebar from "./components/Sidebar";
 
 /* ----------------------------- Types & data ----------------------------- */
 
@@ -205,42 +206,12 @@ export default function Page() {
       />
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="ml-6 mt-2 w-[251px] shrink-0  px-4 py-6">
-          <nav className="space-y-1">
-            {NAV_ITEMS.map((item) =>
-              item === "View page" ? (
-                <a
-                  key={item}
-                  href={`https://${PAGE_URL}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setActiveNav(item)}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-                    activeNav === item
-                      ? "bg-gray-100 text-gray-900 cursor-pointer"
-                      : "text-gray-600 hover:bg-gray-50 cursor-pointer"
-                  }`}
-                >
-                  {item}
-                  <ExternalLink size={14} className="ml-auto text-gray-400" />
-                </a>
-              ) : (
-                <button
-                  key={item}
-                  onClick={() => setActiveNav(item)}
-                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium ${
-                    activeNav === item
-                      ? "bg-gray-100 text-gray-900 cursor-pointer"
-                      : "text-gray-600 hover:bg-gray-50 cursor-pointer"
-                  }`}
-                >
-                  {item}
-                </button>
-              ),
-            )}
-          </nav>
-        </aside>
+        <Sidebar
+          navItems={NAV_ITEMS}
+          activeNav={activeNav}
+          setActiveNav={setActiveNav}
+          pageUrl={PAGE_URL}
+        />
 
         {/* Main content */}
         <main className="mx-auto w-full max-w-[859px] px-8 py-8">
