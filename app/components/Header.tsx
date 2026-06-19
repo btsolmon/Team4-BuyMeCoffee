@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Coffee, ChevronDown } from "lucide-react";
+import { Coffee, ChevronDown, LogOut } from "lucide-react";
 import React from "react";
 
 interface HeaderProps {
@@ -8,7 +7,11 @@ interface HeaderProps {
   setProfileOpen: (open: boolean | ((prevState: boolean) => boolean)) => void;
 }
 
-export function Header({ profileRef, profileOpen, setProfileOpen }: any) {
+export function Header({
+  profileRef,
+  profileOpen,
+  setProfileOpen,
+}: HeaderProps) {
   return (
     <header className="flex h-16 items-center justify-between px-10">
       <div className="flex items-center gap-2">
@@ -36,19 +39,20 @@ export function Header({ profileRef, profileOpen, setProfileOpen }: any) {
             className={`text-gray-500 transition-transform ${
               profileOpen ? "rotate-180" : ""
             }`}
-          />{" "}
-        </button>{" "}
+          />
+        </button>
         {profileOpen && (
           <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <button
               onClick={() => setProfileOpen(false)}
-              className="block w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
             >
+              <LogOut size={14} />
               Log out
             </button>
           </div>
         )}
-      </div>{" "}
+      </div>
     </header>
   );
 }

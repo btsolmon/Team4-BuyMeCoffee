@@ -1,9 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
-
-const NAV_ITEMS = ["Home", "Explore", "View page", "Account settings"] as const;
-type NavItemType = (typeof NAV_ITEMS)[number];
+import { NavItemType } from "../types";
 
 interface SidebarProps {
   navItems: readonly NavItemType[];
@@ -19,7 +17,7 @@ export default function Sidebar({
   pageUrl,
 }: SidebarProps) {
   return (
-    <aside className="ml-6 mt-2 w-[251px] shrink-0 px-4 py-6">
+    <aside className="ml-6 mt-2 w-62.75 shrink-0 px-4 py-6">
       <nav className="space-y-1">
         {navItems.map((item) =>
           item === "View page" ? (
