@@ -29,6 +29,7 @@ export function DialogDemo({
 }) {
   const [avatar, setAvatar] = useState(currentAvatar);
   const [loading, setLoading] = useState(false);
+  const [about, setAbout] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +60,7 @@ export function DialogDemo({
       <DialogTrigger render={<Button variant="outline" />}>
         Edit page
       </DialogTrigger>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-sm max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
           <DialogDescription>
@@ -109,11 +110,17 @@ export function DialogDemo({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="username-1">Username</Label>
-            <Input
-              id="username-1"
-              name="username"
-              defaultValue={currentAbout ?? ""}
+            <textarea
+              name="ingredients"
+              className="w-full p-3 border rounded-md text-sm min-h-[80px] focus:outline-none  outline-0"
+              value={about}
+              onChange={(e) => setAbout(e.target.value)}
+              placeholder="about"
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="name-1">Social media URL</Label>
+            <Input id="name-1" name="name" defaultValue={currentName} />
           </div>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />}>
