@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authenticate } from "@/lib/authenticate";
+import { verifyToken } from "@/lib/token";
 
 type UpdateProfileData = {
   name?: string;
@@ -16,12 +16,16 @@ export async function PATCH(
   { params }: { params: { profileId: string } },
 ) {
   try {
-    const authUser = await authenticate(req);
-    if (!authUser)
+    const token = req.cookies.get("access_token")?.value;
+    if (!token)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const payload = await verifyToken(token);
+    if (!payload)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const owner = await prisma.user.findFirst({
-      where: { id: authUser.id, profileId: params.profileId },
+      where: { id: payload.sub as string, profileId: params.profileId },
     });
     if (!owner)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

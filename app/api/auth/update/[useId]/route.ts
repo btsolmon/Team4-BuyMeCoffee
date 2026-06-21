@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authenticate } from "@/lib/authenticate";
+import { verifyToken } from "@/lib/token"; // ← authenticate → verifyToken
 import bcrypt from "bcrypt";
 
 type UpdateUserData = {
@@ -13,9 +13,17 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { userId: string } },
 ) {
-  const authUser = await authenticate(req);
-  if (!authUser)
+  const token = req.cookies.get("access_token")?.value;
+  if (!token)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const payload = await verifyToken(token);
+  if (!payload)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // өөрийн мэдээллээ л өөрчлөх боломжтой
+  if (payload.sub !== params.userId)
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   try {
     const body: UpdateUserData = await req.json();

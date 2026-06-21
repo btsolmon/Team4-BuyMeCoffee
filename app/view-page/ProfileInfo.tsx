@@ -6,12 +6,14 @@ export default function ProfileInfo({
   currentName,
   currentAbout,
   username,
+  currentSocialMediaURL,
 }: {
   profileId: string;
   currentAvatar: string | null;
   currentName: string;
   currentAbout: string | null;
   username: string;
+  currentSocialMediaURL?: string | null;
 }) {
   return (
     <div className="space-y-4">
@@ -34,6 +36,7 @@ export default function ProfileInfo({
             currentAvatar={currentAvatar ?? undefined}
             currentName={currentName}
             currentAbout={currentAbout ?? undefined}
+            currentSocialMediaURL={currentSocialMediaURL ?? undefined}
           />
         </div>
 
@@ -49,7 +52,8 @@ export default function ProfileInfo({
       <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
         <h3 className="text-sm font-bold text-gray-900">Social media URL</h3>
         <p className="mt-2 text-sm text-gray-600">
-          https://buymeacoffee.com/{username}
+          {process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/
+          {username}
         </p>
       </div>
     </div>

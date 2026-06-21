@@ -1,19 +1,27 @@
+import { cookies } from "next/headers";
 import { Cover } from "./Cover";
 import DonationCard from "./DonationCard";
 import ProfileInfo from "./ProfileInfo";
 import { Supporter } from "./Supporter";
 import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { verifyToken } from "@/lib/token";
 
 export default async function CreatorPreviewPage() {
-  const profile = {
-    id: "mock-id",
-    name: "Jake",
-    about: "I'm a typical person who enjoys exploring different things.",
-    avatarImage:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
-    backgroundImage: null,
-  };
+  const cookieStore = await cookies();
+  const token = cookieStore.get("access_token")?.value;
+  if (!token) redirect("/login");
 
+  const payload = await verifyToken(token);
+  if (!payload) redirect("/login");
+
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub as string },
+    include: { profile: true },
+  });
+  if (!user) redirect("/login");
+
+  const { profile } = user;
   return (
     <div className="w-full min-h-screen bg-white pb-20">
       <Cover id={profile.id} cover={profile.backgroundImage} isOwner={true} />
@@ -27,7 +35,8 @@ export default async function CreatorPreviewPage() {
                 currentAvatar={profile.avatarImage ?? null}
                 currentName={profile.name}
                 currentAbout={profile.about ?? null}
-                username="spacerulz44"
+                username={user.username}
+                currentSocialMediaURL={profile.socialMediaURL}
               />
               <Supporter name={profile.name} />
             </div>

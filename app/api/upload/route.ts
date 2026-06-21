@@ -3,20 +3,31 @@ import { put } from "@vercel/blob";
 import { del } from "@vercel/blob";
 import { NextResponse } from "next/server";
 export async function PUT(request: Request) {
-  const form = await request.formData();
-  const file = form.get("file") as File;
-  const profileId = form.get("profileId") as string;
-  const blob = await put(file.name, file, {
-    access: "public",
-    addRandomSuffix: true,
-  });
-  console.log(form.get("profileId"), "profile id");
+  try {
+    const form = await request.formData();
+    const file = form.get("file") as File;
+    const profileId = form.get("profileId") as string;
+    const field = form.get("field") as string;
 
-  // await prisma.profile.update({
-  //   where: { id: profileId },
-  //   data: { backgroundImage: blob.url },
-  // });
-  return NextResponse.json(blob);
+    console.log({ file, profileId, field }); // ← юу ирж байна?
+
+    const blob = await put(file.name, file, {
+      access: "public",
+      addRandomSuffix: true,
+    });
+
+    console.log({ blob }); // ← blob зөв үү?
+
+    await prisma.profile.update({
+      where: { id: profileId },
+      data: { [field]: blob.url },
+    });
+
+    return NextResponse.json(blob);
+  } catch (e) {
+    console.error(e); // ← алдаа юу байна?
+    return NextResponse.json({ error: String(e) }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: Request) {

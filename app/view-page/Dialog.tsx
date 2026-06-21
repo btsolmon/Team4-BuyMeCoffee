@@ -21,16 +21,45 @@ export function DialogDemo({
   currentAvatar,
   currentName,
   currentAbout,
+  currentSocialMediaURL,
 }: {
   profileId: string;
   currentAvatar?: string;
   currentName: string;
   currentAbout?: string;
+  currentSocialMediaURL?: string;
 }) {
   const [avatar, setAvatar] = useState(currentAvatar);
   const [loading, setLoading] = useState(false);
   const [about, setAbout] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [name, setName] = useState(currentName);
+  const [socialMediaURL, setSocialMediaURL] = useState(
+    currentSocialMediaURL ?? "",
+  );
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetch(`/api/profile/${profileId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          about,
+          socialMediaURL,
+          avatarImage: avatar,
+        }),
+      });
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,6 +70,7 @@ export function DialogDemo({
       const form = new FormData();
       form.append("file", file);
       form.append("profileId", profileId);
+      form.append("field", "avatarImage"); // ← энэ дутуу байсан
 
       const res = await fetch("/api/upload", {
         method: "PUT",
@@ -67,7 +97,7 @@ export function DialogDemo({
             Make changes to your profile here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        <form className="space-y-4">
+        <form className="space-y-4 " onSubmit={handleSubmit}>
           <div className="flex flex-col items-center gap-2">
             <div
               className="relative w-20 h-20 rounded-full overflow-hidden bg-gray-100 cursor-pointer group"
@@ -106,7 +136,12 @@ export function DialogDemo({
 
           <div className="space-y-1.5">
             <Label htmlFor="name-1">Name</Label>
-            <Input id="name-1" name="name" defaultValue={currentName} />
+            <Input
+              id="name-1"
+              name="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="username-1">Username</Label>
@@ -120,7 +155,12 @@ export function DialogDemo({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="name-1">Social media URL</Label>
-            <Input id="name-1" name="name" defaultValue={currentName} />
+            <Input
+              id="social-1"
+              name="socialMediaURL"
+              value={socialMediaURL}
+              onChange={(e) => setSocialMediaURL(e.target.value)}
+            />
           </div>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" />}>

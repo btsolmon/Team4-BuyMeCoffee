@@ -27,11 +27,25 @@ export async function POST(req: NextRequest) {
     const accessToken = await generateToken(user.id, user.email, "15m");
     const refreshToken = await generateToken(user.id, user.email, "7d", true);
 
-    return NextResponse.json({
-      user: userWithoutPassword,
-      accessToken,
-      refreshToken,
+    const res = NextResponse.json({ user: userWithoutPassword });
+
+    res.cookies.set("access_token", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 15,
+      path: "/",
     });
+
+    res.cookies.set("refresh_token", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return res;
   } catch (e) {
     return NextResponse.json(
       { error: "Internal server error" },
