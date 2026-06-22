@@ -12,6 +12,21 @@ datasource db {
   provider = "postgresql"
 }
 
+model Donation {
+  id                      String   @id @default(nanoid())
+  amount                  Int
+  specialMessage          String?
+  socialURLOrBuyMeACoffee String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  donorId     String?
+  recipientId String
+
+  donor     User? @relation("SentDonations", fields: [donorId], references: [id], onDelete: SetNull)
+  recipient User  @relation("ReceivedDonations", fields: [recipientId], references: [id], onDelete: Cascade)
+}
+
 model User {
   id        String   @id @default(nanoid())
   email     String   @unique
@@ -55,19 +70,4 @@ model BankCard {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Donation {
-  id                      String   @id @default(nanoid())
-  amount                  Int
-  specialMessage          String?
-  socialURLOrBuyMeACoffee String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-
-  donorId     String?
-  recipientId String
-
-  donor     User? @relation("SentDonations", fields: [donorId], references: [id], onDelete: SetNull)
-  recipient User  @relation("ReceivedDonations", fields: [recipientId], references: [id], onDelete: Cascade)
 }
