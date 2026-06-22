@@ -1,13 +1,48 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Coffee, Copy, ExternalLink } from "lucide-react";
-import {Header} from "./components/Header";
+import {
+  Check,
+  ChevronDown,
+  Coffee,
+  Copy,
+  ExternalLink,
+  Heart,
+} from "lucide-react";
+import { Header } from "./components/Header";
 import Sidebar from "./components/Sidebar";
+import ExploreSection from "./components/ExploreSection"; // ExploreSection-оо импортлох
+import { Profile, Donation, NAV_ITEMS, NavItemType } from "./types";
 
 /* ----------------------------- Types & data ----------------------------- */
 
 type EarningsRange = "Last 30 days" | "Last 90 days" | "All time";
+const MOCK_DONATIONS: Donation[] = [
+  {
+    id: "don_1",
+    amount: 1,
+    specialMessage: "Thank you!",
+    socialURLOrBuyMeACoffee: "instagram.com/welesley",
+    donorId: "user_2",
+    recipientId: "user_1",
+    createdAt: new Date(),
+    donor: {
+      username: "Guest",
+    },
+  },
+  {
+    id: "don_2",
+    amount: 10,
+    specialMessage: "Keep it up!",
+    socialURLOrBuyMeACoffee: "buymeacoffee.com/bdsadas",
+    donorId: "user_3",
+    recipientId: "user_1",
+    createdAt: new Date(),
+    donor: {
+      username: "John Doe",
+    },
+  },
+];
 
 const EARNINGS_OPTIONS: EarningsRange[] = [
   "Last 30 days",
@@ -31,91 +66,15 @@ const AMOUNT_OPTIONS: { label: string; value: AmountValue | null }[] = [
   { label: "$10", value: 10 },
 ];
 
-type Avatar =
-  | { kind: "initials"; initials: string }
-  | { kind: "gradient"; gradient: string };
-
-interface Transaction {
-  id: number;
-  name: string;
-  handle: string;
-  amount: AmountValue;
-  time: string;
-  avatar: Avatar;
-  message?: string;
-  messageExtra?: string; // shown only when "Show more" is expanded
-}
-
-const NAV_ITEMS = ["Home", "Explore", "View page", "Account settings"] as const;
-
-const TRANSACTIONS: Transaction[] = [
-  {
-    id: 1,
-    name: "Guest",
-    handle: "instagram.com/welesley",
-    amount: 1,
-    time: "10 hours ago",
-    avatar: { kind: "initials", initials: "CN" },
-    message:
-      "Thank you for being so awesome everyday! You always manage to brighten up my day when I'm feeling down. Although $1 isn't that much money it's all I can contribute at the moment",
-  },
-  {
-    id: 2,
-    name: "John Doe",
-    handle: "buymeacoffee.com/bdsadas",
-    amount: 10,
-    time: "10 hours ago",
-    avatar: {
-      kind: "gradient",
-      gradient: "linear-gradient(135deg, #fb923c, #ec4899, #8b5cf6)",
-    },
-    message: "Thank you for being so awesome everyday!",
-  },
-  {
-    id: 3,
-    name: "Radicals",
-    handle: "buymeacoffee.com/gkfgrew",
-    amount: 2,
-    time: "10 hours ago",
-    avatar: { kind: "initials", initials: "CN" },
-  },
-  {
-    id: 4,
-    name: "Guest",
-    handle: "facebook.com/penelopeb",
-    amount: 5,
-    time: "10 hours ago",
-    avatar: {
-      kind: "gradient",
-      gradient: "linear-gradient(135deg, #f472b6, #a78bfa, #60a5fa)",
-    },
-  },
-  {
-    id: 5,
-    name: "Fan1",
-    handle: "buymeacoffee.com/supporterone",
-    amount: 10,
-    time: "10 hours ago",
-    avatar: {
-      kind: "gradient",
-      gradient: "linear-gradient(135deg, #1e293b, #0f172a)",
-    },
-    message:
-      "Thank you for being so awesome everyday! You always manage to brighten up my day when I'm feeling down. Although $1 isn't that much money it's all I can contribute at the moment. When I become successful I will be sure to buy you",
-    messageExtra:
-      " a whole bakery's worth of treats as a thank you for all your support.",
-  },
-  {
-    id: 6,
-    name: "Guest",
-    handle: "instagram.com/welesley",
-    amount: 1,
-    time: "10 hours ago",
-    avatar: { kind: "initials", initials: "CN" },
-  },
-];
-
 const PAGE_URL = "buymeacoffee.com/baconpancakes1";
+
+function AccountSettingsSection() {
+  return (
+    <div className="p-4 text-gray-500">
+      Account settings content coming soon...
+    </div>
+  );
+}
 
 /* ------------------------------- Helpers -------------------------------- */
 
@@ -133,22 +92,35 @@ function useOutsideClick<T extends HTMLElement>(onOutside: () => void) {
   return ref;
 }
 
-function Avatar({ avatar, size = 40 }: { avatar: Avatar; size?: number }) {
-  if (avatar.kind === "initials") {
+/**
+ * Renamed to AvatarDisplay to avoid conflict with the Avatar type definition.
+ */
+function AvatarDisplay({
+  src,
+  name,
+  size = 40,
+}: {
+  src?: string | null;
+  name: string;
+  size?: number;
+}) {
+  if (src) {
     return (
-      <div
+      <img
+        src={src}
+        alt={name}
         style={{ width: size, height: size }}
-        className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500"
-      >
-        {avatar.initials}
-      </div>
+        className="shrink-0 rounded-full object-cover"
+      />
     );
   }
   return (
     <div
-      style={{ width: size, height: size, background: avatar.gradient }}
-      className="shrink-0 rounded-full"
-    />
+      style={{ width: size, height: size }}
+      className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500"
+    >
+      {name.charAt(0).toUpperCase()}
+    </div>
   );
 }
 
@@ -157,7 +129,7 @@ function Avatar({ avatar, size = 40 }: { avatar: Avatar; size?: number }) {
 export default function Page() {
   const [activeNav, setActiveNav] =
     useState<(typeof NAV_ITEMS)[number]>("Home");
-
+  const [searchQuery, setSearchQuery] = useState("");
   const [earningsRange, setEarningsRange] =
     useState<EarningsRange>("Last 30 days");
   const [earningsOpen, setEarningsOpen] = useState(false);
@@ -174,28 +146,40 @@ export default function Page() {
     setProfileOpen(false),
   );
 
+  // State for data from DB - Initialized with mock data for now
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [donations, setDonations] = useState<Donation[]>(MOCK_DONATIONS);
   const [copied, setCopied] = useState(false);
-  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
-  function toggleExpanded(id: number) {
+  useEffect(() => {
+    // This is where you will eventually fetch data from your Prisma/DB setup
+  }, []);
+
+  const filteredProfiles = profiles.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+  const filteredTransactions = amountFilter
+    ? donations.filter((t) => t.amount === amountFilter)
+    : donations;
+
+  function toggleExpanded(id: string) {
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
 
   function handleShare() {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(`https://${PAGE_URL}`).catch(() => {});
-    }
+    navigator.clipboard.writeText(`https://${PAGE_URL}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
-
-  const filteredTransactions = amountFilter
-    ? TRANSACTIONS.filter((t) => t.amount === amountFilter)
-    : TRANSACTIONS;
 
   return (
     <div className="px-10 min-h-screen bg-white font-sans text-gray-900">
@@ -214,203 +198,228 @@ export default function Page() {
         />
 
         {/* Main content */}
-        <main className="mx-auto w-full max-w-[859px] px-8 py-8">
-          {/* Profile + earnings card */}
-          <section className="rounded-2xl border border-gray-200 p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div
-                    style={{
-                      width: 48,
-                      height: 48,
-                      background:
-                        "linear-gradient(135deg, #fb7185, #f472b6, #818cf8)",
-                    }}
-                    className="rounded-full ring-4 ring-white"
-                  />
-                </div>
-                <div>
-                  <p className="text-base font-bold text-gray-900">Jake</p>
-                  <p className="text-sm text-gray-500">{PAGE_URL}</p>
-                </div>
-              </div>
-
-              <button
-                onClick={handleShare}
-                className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 cursor-pointer"
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-                {copied ? "Copied!" : "Share page link"}
-              </button>
-            </div>
-
-            <div className="mb-6 mt-5 h-0.5 bg-gray-200 w-full" />
-
-            <div className="flex items-center gap-3">
-              <span className="text-base font-bold text-gray-900">
-                Earnings
-              </span>
-              <div className="relative" ref={earningsRef}>
-                <button
-                  onClick={() => setEarningsOpen((v) => !v)}
-                  aria-haspopup="listbox"
-                  aria-expanded={earningsOpen}
-                  className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 cursor-pointer"
-                >
-                  {earningsRange}
-                  <ChevronDown
-                    size={16}
-                    className={`text-gray-500 transition-transform ${
-                      earningsOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {earningsOpen && (
-                  <div
-                    role="listbox"
-                    className="absolute left-0 z-20 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-                  >
-                    {EARNINGS_OPTIONS.map((opt) => (
-                      <button
-                        key={opt}
-                        role="option"
-                        aria-selected={opt === earningsRange}
-                        onClick={() => {
-                          setEarningsRange(opt);
-                          setEarningsOpen(false);
+        <main className="mx-auto w-full max-w-214.75 px-8 py-8">
+          {activeNav === "Explore" ? (
+            <ExploreSection
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filteredCreators={filteredProfiles}
+            />
+          ) : activeNav === "Account settings" ? (
+            // 2. Бусад тохиолдолд бусад хэсгүүдээ харуулна
+            <AccountSettingsSection />
+          ) : (
+            // 3. Үндсэн 'Home' буюу Dashboard хэсэг
+            <>
+              {/* Profile + earnings card */}
+              <section className="rounded-2xl border border-gray-200 p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="relative">
+                      <div
+                        style={{
+                          width: 48,
+                          height: 48,
+                          background:
+                            "linear-gradient(135deg, #fb7185, #f472b6, #818cf8)",
                         }}
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        {opt}
-                        {opt === earningsRange && (
-                          <Check size={14} className="text-gray-900" />
-                        )}
-                      </button>
-                    ))}
+                        className="rounded-full ring-4 ring-white"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-gray-900">Jake</p>
+                      <p className="text-sm text-gray-500">{PAGE_URL}</p>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
 
-            <p className="mt-3 text-4xl font-extrabold tracking-tight text-gray-900">
-              ${EARNINGS_DATA[earningsRange].toLocaleString()}
-            </p>
-          </section>
-
-          {/* Recent transactions card */}
-          <section className="mt-8 rounded-2xl border border-gray-200">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-              <h2 className="text-lg font-bold text-gray-900">
-                Recent transactions
-              </h2>
-
-              <div className="relative" ref={amountRef}>
-                <button
-                  onClick={() => setAmountOpen((v) => !v)}
-                  aria-haspopup="listbox"
-                  aria-expanded={amountOpen}
-                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-50 cursor-pointer"
-                >
-                  <ChevronDown
-                    size={16}
-                    className={`text-gray-500 transition-transform ${
-                      amountOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                  {amountFilter ? `$${amountFilter}` : "Amount"}
-                </button>
-
-                {amountOpen && (
-                  <div
-                    role="listbox"
-                    className="absolute right-0 z-20 mt-2 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 cursor-pointer"
                   >
-                    {AMOUNT_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.label}
-                        role="option"
-                        aria-selected={opt.value === amountFilter}
-                        onClick={() => {
-                          setAmountFilter(opt.value);
-                          setAmountOpen(false);
-                        }}
-                        className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
-                      >
-                        {opt.label}
-                        {opt.value === amountFilter && (
-                          <Check size={14} className="text-gray-900" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                    {copied ? "Copied!" : "Share page link"}
+                  </button>
+                </div>
 
-            {filteredTransactions.length === 0 ? (
-              <div className="px-6 py-10 text-center">
-                <p className="text-sm text-gray-500">
-                  ${amountFilter} дүнтэй гүйлгээ олдсонгүй.
-                </p>
-                <button
-                  onClick={() => setAmountFilter(null)}
-                  className="mt-2 text-sm font-medium text-gray-900 underline"
-                >
-                  Бүх гүйлгээг харах
-                </button>
-              </div>
-            ) : (
-              <ul>
-                {filteredTransactions.map((t) => {
-                  const isExpanded = expanded.has(t.id);
-                  return (
-                    <li
-                      key={t.id}
-                      className="border-b border-gray-100 px-6 py-5 last:border-b-0"
+                <div className="mb-6 mt-5 h-0.5 bg-gray-200 w-full" />
+
+                <div className="flex items-center gap-3">
+                  <span className="text-base font-bold text-gray-900">
+                    Earnings
+                  </span>
+                  <div className="relative" ref={earningsRef}>
+                    <button
+                      onClick={() => setEarningsOpen((v) => !v)}
+                      aria-haspopup="listbox"
+                      aria-expanded={earningsOpen}
+                      className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 cursor-pointer"
                     >
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-start gap-3">
-                          <Avatar avatar={t.avatar} />
-                          <div>
-                            <p className="text-sm font-semibold text-gray-900">
-                              {t.name}
-                            </p>
-                            <p className="text-xs text-gray-500">{t.handle}</p>
-                          </div>
-                        </div>
-                        <div className="shrink-0 text-right">
-                          <p className="text-sm font-bold text-gray-900">
-                            + ${t.amount}
-                          </p>
-                          <p className="text-xs text-gray-400">{t.time}</p>
-                        </div>
-                      </div>
+                      {earningsRange}
+                      <ChevronDown
+                        size={16}
+                        className={`text-gray-500 transition-transform ${
+                          earningsOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
 
-                      {t.message && (
-                        <p className="mt-2 text-sm leading-relaxed text-gray-700">
-                          {t.message}
-                          {t.messageExtra && (
-                            <>
-                              {isExpanded ? t.messageExtra : "..."}
-                              {"  "}
-                              <button
-                                onClick={() => toggleExpanded(t.id)}
-                                className="font-medium text-gray-900 underline"
-                              >
-                                {isExpanded ? "Show less" : "Show more"}
-                              </button>
-                            </>
-                          )}
-                        </p>
+                    {earningsOpen && (
+                      <div
+                        role="listbox"
+                        className="absolute left-0 z-20 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                      >
+                        {EARNINGS_OPTIONS.map((opt) => (
+                          <button
+                            key={opt}
+                            role="option"
+                            aria-selected={opt === earningsRange}
+                            onClick={() => {
+                              setEarningsRange(opt);
+                              setEarningsOpen(false);
+                            }}
+                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            {opt}
+                            {opt === earningsRange && (
+                              <Check size={14} className="text-gray-900" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <p className="mt-3 text-4xl font-extrabold tracking-tight text-gray-900">
+                  ${EARNINGS_DATA[earningsRange].toLocaleString()}
+                </p>
+              </section>
+
+              {/* Recent transactions card */}
+              <section className="mt-8 rounded-2xl border border-gray-200">
+                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+                  <h2 className="text-lg font-bold text-gray-900">
+                    Recent transactions
+                  </h2>
+
+                  {/* Amount filter dropdown-аа зөвхөн гүйлгээ байгаа үед л харуулах нь зүйтэй */}
+                  {donations.length > 0 && (
+                    <div className="relative" ref={amountRef}>
+                      <button
+                        onClick={() => setAmountOpen((v) => !v)}
+                        className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <ChevronDown
+                          size={16}
+                          className={`text-gray-500 transition-transform ${
+                            amountOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                        {amountFilter ? `$${amountFilter}` : "Amount"}
+                      </button>
+
+                      {amountOpen && (
+                        <div className="absolute right-0 z-20 mt-2 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                          {AMOUNT_OPTIONS.map((opt) => (
+                            <button
+                              key={opt.label}
+                              onClick={() => {
+                                setAmountFilter(opt.value);
+                                setAmountOpen(false);
+                              }}
+                              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              {opt.label}
+                              {opt.value === amountFilter && (
+                                <Check size={14} className="text-gray-900" />
+                              )}
+                            </button>
+                          ))}
+                        </div>
                       )}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </section>
+                    </div>
+                  )}
+                </div>
+
+                {/* Гүйлгээ хоосон үеийн загвар */}
+                {filteredTransactions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
+                      <Heart size={32} className="text-black" />
+                    </div>
+                    <p className="text-gray-900 font-medium">
+                      You do not have any supporters yet
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Share your page with your audience to get started.
+                    </p>
+                  </div>
+                ) : (
+                  <ul>
+                    {filteredTransactions.map((t) => {
+                      const isExpanded = expanded.has(t.id);
+                      return (
+                        <li
+                          key={t.id}
+                          className="border-b border-gray-100 px-6 py-5 last:border-b-0"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3">
+                              <AvatarDisplay
+                                src={t.donor?.profile?.avatarImage}
+                                name={t.donor?.username || "Guest"}
+                              />
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {t.donor?.username || "Guest"}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {t.socialURLOrBuyMeACoffee || "No handle"}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <p className="text-sm font-bold text-gray-900">
+                                + ${t.amount}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {new Date(t.createdAt).toLocaleDateString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "2-digit",
+                                    year: "numeric",
+                                  },
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          {t.specialMessage && (
+                            <p className="mt-2 text-sm leading-relaxed text-gray-700">
+                              {t.specialMessage}
+                              {t.specialMessage.length > 100 && (
+                                <>
+                                  {!isExpanded && "..."}
+                                  {"  "}
+                                  <button
+                                    onClick={() => toggleExpanded(t.id!)}
+                                    className="font-medium text-gray-900 underline"
+                                  >
+                                    {isExpanded ? "Show less" : "Show more"}
+                                  </button>
+                                </>
+                              )}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            </>
+          )}
         </main>
       </div>
     </div>
