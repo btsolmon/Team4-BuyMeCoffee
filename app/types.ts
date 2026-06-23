@@ -33,5 +33,6 @@ export interface Profile {
   socialMediaURL?: string | null;
   backgroundImage?: string | null;
   successMessage?: string | null;
+  username?: string;
 }
 export type Creator = Profile;

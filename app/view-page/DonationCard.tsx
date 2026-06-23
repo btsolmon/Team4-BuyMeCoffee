@@ -1,11 +1,55 @@
 "use client";
 import { useState } from "react";
 
-export default function DonationCard({ creatorName }: { creatorName: string }) {
+export default function DonationCard({
+  creatorName,
+  recipientId,
+}: {
+  creatorName: string;
+  recipientId: string;
+}) {
   const [amount, setAmount] = useState<number>(5);
+  const [socialUrl, setSocialUrl] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+
+    const res = await fetch("/api/donation/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipientId,
+        amount,
+        specialMessage: message || null,
+        socialURLOrBuyMeACoffee: socialUrl || null,
+      }),
+    });
+
+    setLoading(false);
+
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error ?? "Алдаа гарлаа");
+      return;
+    }
+
+    setSuccess(true);
+    setMessage("");
+    setSocialUrl("");
+  }
 
   return (
-    <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm sticky top-6 ">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm sticky top-6"
+    >
       <h2 className="text-xl font-bold text-gray-900 mb-4">
         Buy {creatorName} a Coffee
       </h2>
@@ -39,9 +83,10 @@ export default function DonationCard({ creatorName }: { creatorName: string }) {
         </label>
         <input
           type="text"
+          value={socialUrl}
+          onChange={(e) => setSocialUrl(e.target.value)}
           placeholder="buymeacoffee.com/"
-          disabled
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 cursor-not-allowed"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400"
         />
       </div>
 
@@ -51,18 +96,27 @@ export default function DonationCard({ creatorName }: { creatorName: string }) {
         </label>
         <textarea
           rows={4}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
           placeholder="Please write your message here"
-          disabled
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 resize-none cursor-not-allowed"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 resize-none"
         />
       </div>
 
+      {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
+      {success && (
+        <p className="text-sm text-green-600 mb-3">
+          Thank you for your support!
+        </p>
+      )}
+
       <button
-        disabled
-        className="w-full py-2.5 bg-gray-200 text-white font-medium rounded-lg text-sm cursor-not-allowed"
+        type="submit"
+        disabled={loading}
+        className="w-full py-2.5 bg-gray-900 text-white font-medium rounded-lg text-sm hover:bg-gray-800 disabled:opacity-50"
       >
-        Support
+        {loading ? "Sending..." : "Support"}
       </button>
-    </div>
+    </form>
   );
 }

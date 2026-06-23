@@ -3,7 +3,9 @@ import { verifyToken } from "./token";
 import { prisma } from "./prisma";
 
 export async function authenticate(req: NextRequest) {
-  const token = req.headers.get("authorization")?.replace("Bearer ", "");
+  const token =
+    req.headers.get("authorization")?.replace("Bearer ", "") ??
+    req.cookies.get("access_token")?.value;
   if (!token) return null;
 
   const payload = await verifyToken(token);
