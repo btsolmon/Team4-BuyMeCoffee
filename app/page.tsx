@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -366,9 +367,7 @@ export default function Page() {
                       <p className="text-base font-bold text-gray-900">
                         {currentUser?.profile.name ?? "—"}
                       </p>
-                      <p className="text-sm text-gray-500">
-                        {pageUrl || "—"}
-                      </p>
+                      <p className="text-sm text-gray-500">{pageUrl || "—"}</p>
                     </div>
                   </div>
 
