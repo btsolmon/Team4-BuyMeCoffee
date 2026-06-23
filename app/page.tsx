@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -70,9 +71,125 @@ const PAGE_URL = "buymeacoffee.com/baconpancakes1";
 
 function AccountSettingsSection() {
   return (
-    <div className="p-4 text-gray-500">
-      Account settings content coming soon...
+    <div className="max-w-3xl mx-auto p-6 space-y-8">
+      <h1 className="text-2xl font-bold">My account</h1>
+
+      {/* Personal Info Section */}
+      <Section title="Personal Info">
+        <div className="flex items-center gap-4 mb-4">
+          <div
+            style={{
+              width: 160,
+              height: 160,
+              background: "linear-gradient(135deg, #fb7185, #f472b6, #818cf8)",
+            }}
+            className="rounded-full ring-4 ring-white"
+          />
+        </div>
+        <InputField label="Name" placeholder="Jake" />
+        <TextAreaField label="About" placeholder="I'm a typical person..." />
+        <InputField label="Social media URL" placeholder="https://..." />
+        <SaveButton />
+      </Section>
+
+      {/* Set a new password Section */}
+      <Section title="Set a new password">
+        <InputField
+          label="New password"
+          type="password"
+          placeholder="Enter new password"
+        />
+        <InputField
+          label="Confirm password"
+          type="password"
+          placeholder="Confirm password"
+        />
+        <SaveButton />
+      </Section>
+
+      {/* Payment details Section */}
+      <Section title="Payment details">
+        <label className="block text-sm font-medium mb-1">Select country</label>
+        <select className="w-full p-2 border rounded-lg mb-4">
+          <option>United States</option>
+        </select>
+        <div className="grid grid-cols-2 gap-4">
+          <InputField label="First name" placeholder="Jake" />
+          <InputField label="Last name" placeholder="Mulligan" />
+        </div>
+        <InputField
+          label="Enter card number"
+          placeholder="XXXX-XXXX-XXXX-XXXX"
+        />
+        <div className="grid grid-cols-3 gap-4">
+          <InputField label="Expires" placeholder="August" />
+          <InputField label="Year" placeholder="2028" />
+          <InputField label="CVC" placeholder="590" />
+        </div>
+        <SaveButton />
+      </Section>
+
+      {/* Success page Section */}
+      <Section title="Success page">
+        <TextAreaField
+          label="Confirmation message"
+          placeholder="Thank you for supporting me!..."
+        />
+        <SaveButton />
+      </Section>
     </div>
+  );
+}
+
+/* Туслах бүрэлдэхүүн хэсгүүд */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <form className="border p-6 rounded-xl shadow-sm space-y-4">
+      <h2 className="text-lg font-bold">{title}</h2>
+      {children}
+    </form>
+  );
+}
+
+function InputField({ label, placeholder, type = "text" }: any) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <input
+        type={type}
+        placeholder={placeholder}
+        className="w-full p-2 border rounded-lg"
+      />
+    </div>
+  );
+}
+
+function TextAreaField({ label, placeholder }: any) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <textarea
+        placeholder={placeholder}
+        className="w-full p-2 border rounded-lg h-24"
+      />
+    </div>
+  );
+}
+
+function SaveButton() {
+  return (
+    <button
+      type="submit"
+      className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition"
+    >
+      Save changes
+    </button>
   );
 }
 
@@ -206,10 +323,8 @@ export default function Page() {
               filteredCreators={filteredProfiles}
             />
           ) : activeNav === "Account settings" ? (
-            // 2. Бусад тохиолдолд бусад хэсгүүдээ харуулна
             <AccountSettingsSection />
           ) : (
-            // 3. Үндсэн 'Home' буюу Dashboard хэсэг
             <>
               {/* Profile + earnings card */}
               <section className="rounded-2xl border border-gray-200 p-6">
