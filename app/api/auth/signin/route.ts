@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { password: _, ...userWithoutPassword } = user;
-    const accessToken = await generateToken(user.id, user.email, "15m");
+    const accessToken = await generateToken(user.id, user.email, "7d");
     const refreshToken = await generateToken(user.id, user.email, "7d", true);
 
     const res = NextResponse.json({ user: userWithoutPassword });

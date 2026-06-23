@@ -17,7 +17,7 @@ export const Supporter = ({ name }: { name: string }) => {
   const hasSupporters = supporters && supporters.length > 0;
 
   return (
-    <div className="p-6 bg-white rounded-xl border border-[#E4E4E7] space-y-6 ">
+    <div className="p-6 bg-white rounded-xl border border-[#E4E4E7] space-y-6">
       <h2 className="text-[18px] font-bold text-gray-900">Recent Supporters</h2>
 
       {hasSupporters ? (
@@ -36,7 +36,7 @@ export const Supporter = ({ name }: { name: string }) => {
                   <p className="text-sm text-gray-900">
                     <span className="font-bold text-[15px]">
                       {donation.donorName}
-                    </span>{" "}
+                    </span>
                     <span className="text-gray-600">
                       bought ${donation.amount} coffee
                     </span>
@@ -50,7 +50,6 @@ export const Supporter = ({ name }: { name: string }) => {
               </div>
             ))}
           </div>
-
           <button className="w-full py-2.5 border border-[#E4E4E7] rounded-xl text-sm font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-1.5 transition">
             See more
             <ChevronDown className="w-4 h-4 text-gray-500" />

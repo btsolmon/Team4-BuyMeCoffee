@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { put } from "@vercel/blob";
 import { del } from "@vercel/blob";
+
 import { NextResponse } from "next/server";
+
 export async function PUT(request: Request) {
   try {
     const form = await request.formData();
@@ -9,14 +11,27 @@ export async function PUT(request: Request) {
     const profileId = form.get("profileId") as string;
     const field = form.get("field") as string;
 
-    console.log({ file, profileId, field }); // ← юу ирж байна?
+    if (!file || !profileId || !field) {
+      return NextResponse.json(
+        {
+          error: "Шаардлагатай мэдээлэл (file, profileId, field) дутуу байна.",
+        },
+        { status: 400 },
+      );
+    }
+
+    console.log("Хүсэлт амжилттай ирлээ:", {
+      filename: file.name,
+      profileId,
+      field,
+    });
 
     const blob = await put(file.name, file, {
       access: "public",
       addRandomSuffix: true,
     });
 
-    console.log({ blob }); // ← blob зөв үү?
+    console.log("Файл Blob руу хуулагдлаа:", blob.url);
 
     await prisma.profile.update({
       where: { id: profileId },
@@ -24,9 +39,14 @@ export async function PUT(request: Request) {
     });
 
     return NextResponse.json(blob);
-  } catch (e) {
-    console.error(e); // ← алдаа юу байна?
-    return NextResponse.json({ error: String(e) }, { status: 500 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (e: any) {
+    console.error("Серверийн алдаа (Terminal дээр харна уу):", e);
+
+    return NextResponse.json(
+      { error: e.message || String(e) },
+      { status: 500 },
+    );
   }
 }
 

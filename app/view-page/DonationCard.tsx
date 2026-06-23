@@ -1,7 +1,13 @@
 "use client";
 import { useState } from "react";
 
-export default function DonationCard({ creatorName }: { creatorName: string }) {
+export default function DonationCard({
+  creatorName,
+  disabled,
+}: {
+  creatorName: string;
+  disabled: boolean;
+}) {
   const [amount, setAmount] = useState<number>(5);
 
   return (
@@ -40,7 +46,7 @@ export default function DonationCard({ creatorName }: { creatorName: string }) {
         <input
           type="text"
           placeholder="buymeacoffee.com/"
-          disabled
+          disabled={disabled}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 cursor-not-allowed"
         />
       </div>
@@ -52,13 +58,13 @@ export default function DonationCard({ creatorName }: { creatorName: string }) {
         <textarea
           rows={4}
           placeholder="Please write your message here"
-          disabled
+          disabled={disabled}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white placeholder-gray-400 resize-none cursor-not-allowed"
         />
       </div>
 
       <button
-        disabled
+        disabled={disabled}
         className="w-full py-2.5 bg-gray-200 text-white font-medium rounded-lg text-sm cursor-not-allowed"
       >
         Support

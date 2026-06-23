@@ -42,7 +42,7 @@ export default async function CreatorPreviewPage() {
             </div>
 
             <div className="w-1/2">
-              <DonationCard creatorName={profile.name} />
+              <DonationCard disabled={false} creatorName={profile.name} />
             </div>
           </div>
         </div>
@@ -50,12 +50,3 @@ export default async function CreatorPreviewPage() {
     </div>
   );
 }
-//  const profile = await prisma.profile.findFirst();
-//   if (!profile)
-//     return (
-//       <div className="flex items-center justify-center min-h-screen">
-//         <div className="border border-gray-200 rounded-lg p-6 text-sm text-gray-500">
-//           Profile олдсонгүй
-//         </div>
-//       </div>
-//     );

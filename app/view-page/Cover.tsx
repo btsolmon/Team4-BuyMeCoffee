@@ -21,23 +21,43 @@ export const Cover = ({
       const form = new FormData();
 
       form.append("file", e.target.files[0]);
-      // form.append("profileId", id);
+      form.append("profileId", id);
 
-      axios.put("/api/upload", form).then((res) => {
-        setImage(res.data.url);
-        setLoading(false);
-      });
+      form.append("field", "backgroundImage");
+
+      axios
+        .put("/api/upload", form)
+        .then((res) => {
+          setImage(res.data.url);
+        })
+        .catch((err) => {
+          console.error("Ковер хуулахад алдаа гарлаа:", err);
+          const errMsg =
+            err.response?.data?.error || "Зургийг шинэчилж чадсангүй.";
+          alert(errMsg);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   };
 
   const handleDelete = () => {
     if (!image) return;
     setLoading(true);
+
     axios
-      .delete(`/api/upload?url=${encodeURIComponent(image)}&profileId=${id}`)
-      .then(() => setImage(null))
-      .catch(() => alert("Зургийг устгаж чадсангүй."))
-      .finally(() => setLoading(false));
+      .delete(`/api/profile?url=${encodeURIComponent(image)}&profileId=${id}`)
+      .then(() => {
+        setImage(null);
+      })
+      .catch((err) => {
+        console.error("Устгахад алдаа гарлаа:", err);
+        alert("Зургийг устгаж чадсангүй.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -76,7 +96,12 @@ export const Cover = ({
               <label className="flex items-center gap-2 bg-black/60 hover:bg-black text-white px-4 py-2 rounded-md text-sm font-medium transition shadow-sm cursor-pointer">
                 <Camera className="w-4 h-4" />
                 {image ? "Change cover" : "Add a cover image"}
-                <input type="file" className="hidden" onChange={handleUpload} />
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleUpload}
+                  accept="image/*"
+                />
               </label>
             </div>
           )}
