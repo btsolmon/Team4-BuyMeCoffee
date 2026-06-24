@@ -16,6 +16,7 @@ import { Header } from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import ExploreSection from "./components/ExploreSection";
 import { Profile, Donation, NAV_ITEMS, NavItemType } from "./types";
+import { User } from "@prisma/client";
 
 type CurrentUser = {
   id: string;
@@ -39,6 +40,7 @@ const EARNINGS_DAYS: Record<EarningsRange, number | null> = {
   "Last 90 days": 90,
   "All time": null,
 };
+type UserWithProfile = User & { profile: Profile };
 
 type AmountValue = 1 | 2 | 5 | 10;
 
@@ -50,15 +52,11 @@ const AMOUNT_OPTIONS: { label: string; value: AmountValue | null }[] = [
   { label: "$10", value: 10 },
 ];
 
-function AccountSettingsSection({
-  currentUser,
-}: {
-  currentUser: CurrentUser | null;
-}) {
+function AccountSettingsSection({}: {}) {
   const [name, setName] = useState("");
   const [about, setAbout] = useState("");
   const [socialMediaURL, setSocialMediaURL] = useState("");
-
+  const [currentUser, setCurrentUser] = useState<UserWithProfile | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -478,7 +476,7 @@ export default function Page() {
         profileRef={profileRef}
         profileOpen={profileOpen}
         setProfileOpen={setProfileOpen}
-        currentUser={currentUser}
+        user={currentUser}
         handleLogout={handleLogout}
       />
 
