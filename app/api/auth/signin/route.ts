@@ -1,64 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { generateToken } from "@/lib/token";
+import { signTokens } from "@/lib/jwt";
 import bcrypt from "bcrypt";
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
-    const normalizedEmail = email?.trim().toLowerCase();
+    if (!email || !password) {
+      return NextResponse.json(
+        { message: "Email болон нууц үгээ оруулна уу" },
+        { status: 400 },
+      );
+    }
 
     const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
+      where: { email },
+      include: { profile: true },
     });
-
     if (!user) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { message: "Email эсвэл нууц үг буруу" },
         { status: 401 },
       );
     }
 
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
+        { message: "Email эсвэл нууц үг буруу" },
         { status: 401 },
       );
     }
 
-    const { password: _, ...userWithoutPassword } = user;
+    const tokens = signTokens(user.id);
+    const { password: _, ...safeUser } = user;
 
-    const accessToken = await generateToken(user.id, user.email, "15m");
-    const refreshToken = await generateToken(user.id, user.email, "7d", true);
-
-    const res = NextResponse.json({
-      user: userWithoutPassword,
-    });
-
-    res.cookies.set("access_token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 15,
-      path: "/",
-    });
-
-    res.cookies.set("refresh_token", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
-
-    return res;
+    return NextResponse.json({ ...tokens, user: safeUser });
   } catch (e) {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "Серверийн алдаа" }, { status: 500 });
   }
 }

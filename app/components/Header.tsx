@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { Coffee, ChevronDown, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { CurrentUser } from "../types";
 
@@ -19,6 +20,12 @@ export function Header({
   currentUser,
   handleLogout,
 }: HeaderProps) {
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    
+    router.push("/");
+  };
   return (
     <header className="flex h-16 items-center justify-between px-10">
       <Link href="/" className="flex items-center gap-2">
@@ -58,8 +65,7 @@ export function Header({
               onClick={handleLogout}
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
             >
-              <LogOut size={14} />
-              Log out
+              Logout
             </button>
           </div>
         )}
