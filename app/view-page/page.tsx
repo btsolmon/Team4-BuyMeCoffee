@@ -38,11 +38,11 @@ export default async function CreatorPreviewPage() {
                 username={user.username}
                 currentSocialMediaURL={profile.socialMediaURL}
               />
-              <Supporter name={profile.name} />
+              <Supporter name={profile.name} userId={user.id} />
             </div>
 
             <div className="w-1/2">
-              <DonationCard creatorName={profile.name} />
+              <DonationCard creatorName={profile.name} recipientId={user.id} />
             </div>
           </div>
         </div>

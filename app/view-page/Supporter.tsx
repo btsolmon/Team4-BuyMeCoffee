@@ -1,20 +1,53 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, Heart } from "lucide-react";
 
-interface Donation {
+interface SupporterDonation {
   id: string;
   amount: number;
   specialMessage: string | null;
   donorName: string;
-  avatarImage: string;
+  avatarImage: string | null;
 }
 
-export const Supporter = ({ name }: { name: string }) => {
-  const [supporters, setSupporters] = useState<Donation[]>([]);
+export const Supporter = ({
+  name,
+  userId,
+}: {
+  name: string;
+  userId: string;
+}) => {
+  const [supporters, setSupporters] = useState<SupporterDonation[]>([]);
 
-  const hasSupporters = supporters && supporters.length > 0;
+  useEffect(() => {
+    fetch(`/api/donation/received/${userId}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) =>
+        setSupporters(
+          data.map(
+            (d: {
+              id: string;
+              amount: number;
+              specialMessage: string | null;
+              donor: {
+                username: string;
+                profile: { avatarImage: string | null } | null;
+              } | null;
+            }) => ({
+              id: d.id,
+              amount: d.amount,
+              specialMessage: d.specialMessage,
+              donorName: d.donor?.username ?? "Guest",
+              avatarImage: d.donor?.profile?.avatarImage ?? null,
+            }),
+          ),
+        ),
+      )
+      .catch(() => setSupporters([]));
+  }, [userId]);
+
+  const hasSupporters = supporters.length > 0;
 
   return (
     <div className="p-6 bg-white rounded-xl border border-[#E4E4E7] space-y-6 ">
@@ -26,11 +59,17 @@ export const Supporter = ({ name }: { name: string }) => {
             {supporters.map((donation) => (
               <div key={donation.id} className="flex gap-4 items-start">
                 <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
-                  <img
-                    src={donation.avatarImage}
-                    alt={donation.donorName}
-                    className="w-full h-full object-cover"
-                  />
+                  {donation.avatarImage ? (
+                    <img
+                      src={donation.avatarImage}
+                      alt={donation.donorName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-sm font-semibold text-gray-500">
+                      {donation.donorName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 pt-0.5 space-y-1">
                   <p className="text-sm text-gray-900">

@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -17,32 +19,6 @@ import { Profile, Donation, NAV_ITEMS, NavItemType } from "./types";
 /* ----------------------------- Types & data ----------------------------- */
 
 type EarningsRange = "Last 30 days" | "Last 90 days" | "All time";
-const MOCK_DONATIONS: Donation[] = [
-  {
-    id: "don_1",
-    amount: 1,
-    specialMessage: "Thank you!",
-    socialURLOrBuyMeACoffee: "instagram.com/welesley",
-    donorId: "user_2",
-    recipientId: "user_1",
-    createdAt: new Date(),
-    donor: {
-      username: "Guest",
-    },
-  },
-  {
-    id: "don_2",
-    amount: 10,
-    specialMessage: "Keep it up!",
-    socialURLOrBuyMeACoffee: "buymeacoffee.com/bdsadas",
-    donorId: "user_3",
-    recipientId: "user_1",
-    createdAt: new Date(),
-    donor: {
-      username: "John Doe",
-    },
-  },
-];
 
 const EARNINGS_OPTIONS: EarningsRange[] = [
   "Last 30 days",
@@ -50,10 +26,10 @@ const EARNINGS_OPTIONS: EarningsRange[] = [
   "All time",
 ];
 
-const EARNINGS_DATA: Record<EarningsRange, number> = {
-  "Last 30 days": 450,
-  "Last 90 days": 1280,
-  "All time": 3940,
+const EARNINGS_DAYS: Record<EarningsRange, number | null> = {
+  "Last 30 days": 30,
+  "Last 90 days": 90,
+  "All time": null,
 };
 
 type AmountValue = 1 | 2 | 5 | 10;
@@ -66,13 +42,133 @@ const AMOUNT_OPTIONS: { label: string; value: AmountValue | null }[] = [
   { label: "$10", value: 10 },
 ];
 
-const PAGE_URL = "buymeacoffee.com/baconpancakes1";
+interface CurrentUser {
+  id: string;
+  username: string;
+  profile: Profile;
+}
 
 function AccountSettingsSection() {
   return (
-    <div className="p-4 text-gray-500">
-      Account settings content coming soon...
+    <div className="max-w-3xl mx-auto p-6 space-y-8">
+      <h1 className="text-2xl font-bold">My account</h1>
+
+      {/* Personal Info Section */}
+      <Section title="Personal Info">
+        <div className="flex items-center gap-4 mb-4">
+          <div
+            style={{
+              width: 160,
+              height: 160,
+              background: "linear-gradient(135deg, #fb7185, #f472b6, #818cf8)",
+            }}
+            className="rounded-full ring-4 ring-white"
+          />
+        </div>
+        <InputField label="Name" placeholder="Jake" />
+        <TextAreaField label="About" placeholder="I'm a typical person..." />
+        <InputField label="Social media URL" placeholder="https://..." />
+        <SaveButton />
+      </Section>
+
+      {/* Set a new password Section */}
+      <Section title="Set a new password">
+        <InputField
+          label="New password"
+          type="password"
+          placeholder="Enter new password"
+        />
+        <InputField
+          label="Confirm password"
+          type="password"
+          placeholder="Confirm password"
+        />
+        <SaveButton />
+      </Section>
+
+      {/* Payment details Section */}
+      <Section title="Payment details">
+        <label className="block text-sm font-medium mb-1">Select country</label>
+        <select className="w-full p-2 border rounded-lg mb-4">
+          <option>United States</option>
+        </select>
+        <div className="grid grid-cols-2 gap-4">
+          <InputField label="First name" placeholder="Jake" />
+          <InputField label="Last name" placeholder="Mulligan" />
+        </div>
+        <InputField
+          label="Enter card number"
+          placeholder="XXXX-XXXX-XXXX-XXXX"
+        />
+        <div className="grid grid-cols-3 gap-4">
+          <InputField label="Expires" placeholder="August" />
+          <InputField label="Year" placeholder="2028" />
+          <InputField label="CVC" placeholder="590" />
+        </div>
+        <SaveButton />
+      </Section>
+
+      {/* Success page Section */}
+      <Section title="Success page">
+        <TextAreaField
+          label="Confirmation message"
+          placeholder="Thank you for supporting me!..."
+        />
+        <SaveButton />
+      </Section>
     </div>
+  );
+}
+
+/* Туслах бүрэлдэхүүн хэсгүүд */
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <form className="border p-6 rounded-xl shadow-sm space-y-4">
+      <h2 className="text-lg font-bold">{title}</h2>
+      {children}
+    </form>
+  );
+}
+
+function InputField({ label, placeholder, type = "text" }: any) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <input
+        type={type}
+        placeholder={placeholder}
+        className="w-full p-2 border rounded-lg"
+      />
+    </div>
+  );
+}
+
+function TextAreaField({ label, placeholder }: any) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">{label}</label>
+      <textarea
+        placeholder={placeholder}
+        className="w-full p-2 border rounded-lg h-24"
+      />
+    </div>
+  );
+}
+
+function SaveButton() {
+  return (
+    <button
+      type="submit"
+      className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition"
+    >
+      Save changes
+    </button>
   );
 }
 
@@ -146,15 +242,61 @@ export default function Page() {
     setProfileOpen(false),
   );
 
-  // State for data from DB - Initialized with mock data for now
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [donations, setDonations] = useState<Donation[]>(MOCK_DONATIONS);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [earnings, setEarnings] = useState(0);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [pageUrl, setPageUrl] = useState("");
 
   useEffect(() => {
-    // This is where you will eventually fetch data from your Prisma/DB setup
+    if (currentUser) {
+      setPageUrl(`${window.location.host}/${currentUser.username}`);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    fetch("/api/profile/explore")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) =>
+        setProfiles(
+          data.map((u: { username: string; profile: Profile }) => ({
+            ...u.profile,
+            username: u.username,
+          })),
+        ),
+      )
+      .catch(() => setProfiles([]));
+
+    fetch("/api/profile/current-user")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((user) => {
+        if (!user) return;
+        setCurrentUser(user);
+        return fetch(`/api/donation/received/${user.id}`);
+      })
+      .then((res) => (res?.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) setDonations(data);
+      })
+      .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const days = EARNINGS_DAYS[earningsRange];
+    const url =
+      days === null
+        ? `/api/donation/total-earnings/${currentUser.id}`
+        : `/api/donation/total-earnings/${currentUser.id}?days=${days}`;
+
+    fetch(url)
+      .then((res) => (res.ok ? res.json() : { total: 0 }))
+      .then((data) => setEarnings(data.total ?? 0))
+      .catch(() => setEarnings(0));
+  }, [currentUser, earningsRange]);
 
   const filteredProfiles = profiles.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -176,7 +318,10 @@ export default function Page() {
   }
 
   function handleShare() {
-    navigator.clipboard.writeText(`https://${PAGE_URL}`);
+    if (!currentUser) return;
+    navigator.clipboard.writeText(
+      `${window.location.origin}/${currentUser.username}`,
+    );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -194,7 +339,7 @@ export default function Page() {
           navItems={NAV_ITEMS}
           activeNav={activeNav}
           setActiveNav={setActiveNav}
-          pageUrl={PAGE_URL}
+          pageUrl={pageUrl}
         />
 
         {/* Main content */}
@@ -206,29 +351,23 @@ export default function Page() {
               filteredCreators={filteredProfiles}
             />
           ) : activeNav === "Account settings" ? (
-            // 2. Бусад тохиолдолд бусад хэсгүүдээ харуулна
             <AccountSettingsSection />
           ) : (
-            // 3. Үндсэн 'Home' буюу Dashboard хэсэг
             <>
               {/* Profile + earnings card */}
               <section className="rounded-2xl border border-gray-200 p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="relative">
-                      <div
-                        style={{
-                          width: 48,
-                          height: 48,
-                          background:
-                            "linear-gradient(135deg, #fb7185, #f472b6, #818cf8)",
-                        }}
-                        className="rounded-full ring-4 ring-white"
-                      />
-                    </div>
+                    <AvatarDisplay
+                      src={currentUser?.profile.avatarImage}
+                      name={currentUser?.profile.name ?? "User"}
+                      size={48}
+                    />
                     <div>
-                      <p className="text-base font-bold text-gray-900">Jake</p>
-                      <p className="text-sm text-gray-500">{PAGE_URL}</p>
+                      <p className="text-base font-bold text-gray-900">
+                        {currentUser?.profile.name ?? "—"}
+                      </p>
+                      <p className="text-sm text-gray-500">{pageUrl || "—"}</p>
                     </div>
                   </div>
 
@@ -291,7 +430,7 @@ export default function Page() {
                 </div>
 
                 <p className="mt-3 text-4xl font-extrabold tracking-tight text-gray-900">
-                  ${EARNINGS_DATA[earningsRange].toLocaleString()}
+                  ${earnings.toLocaleString()}
                 </p>
               </section>
 
