@@ -1,15 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
-import { Coffee, ChevronDown, LogOut } from "lucide-react";
+import { Coffee, ChevronDown } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React from "react";
-import { CurrentUser } from "../types";
+import { User, Profile } from "@prisma/client";
+
+type UserWithProfile = User & { profile: Profile };
 
 interface HeaderProps {
   profileRef: React.RefObject<HTMLDivElement | null>;
   profileOpen: boolean;
   setProfileOpen: (open: boolean | ((prevState: boolean) => boolean)) => void;
-  currentUser: CurrentUser | null;
+  user: UserWithProfile | null;
   handleLogout: () => void;
 }
 
@@ -17,15 +18,9 @@ export function Header({
   profileRef,
   profileOpen,
   setProfileOpen,
-  currentUser,
+  user,
   handleLogout,
 }: HeaderProps) {
-  const router = useRouter();
-
-  const handleSignOut = () => {
-    
-    router.push("/");
-  };
   return (
     <header className="flex h-16 items-center justify-between px-10">
       <Link href="/" className="flex items-center gap-2">
@@ -39,18 +34,17 @@ export function Header({
           aria-expanded={profileOpen}
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
         >
-          {currentUser?.profile.avatarImage ? (
+          {user?.profile.avatarImage ? (
             <img
-              src={currentUser.profile.avatarImage}
-              alt={currentUser.profile.name}
+              src={user.profile.avatarImage}
+              alt={user.profile.name}
               className="w-10 h-10 rounded-full object-cover"
             />
           ) : (
             <div className="w-10 h-10 rounded-full bg-gray-200" />
           )}
-
           <span className="text-sm font-medium mr-10">
-            {currentUser?.profile.name ?? "User"}
+            {user?.profile.name ?? "User"}
           </span>
           <ChevronDown
             size={16}
