@@ -33,12 +33,10 @@ export function DialogDemo({
   const [loading, setLoading] = useState(false);
   const [about, setAbout] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [name, setName] = useState(currentName);
   const [socialMediaURL, setSocialMediaURL] = useState(
     currentSocialMediaURL ?? "",
   );
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -60,23 +58,19 @@ export function DialogDemo({
       setLoading(false);
     }
   };
-
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setLoading(true);
     try {
       const form = new FormData();
       form.append("file", file);
       form.append("profileId", profileId);
       form.append("field", "avatarImage"); // ← энэ дутуу байсан
-
       const res = await fetch("/api/upload", {
         method: "PUT",
         body: form,
       });
-
       const blob = await res.json();
       setAvatar(blob.url);
     } catch (err) {

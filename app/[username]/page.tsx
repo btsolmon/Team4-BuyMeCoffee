@@ -8,10 +8,11 @@ import { Supporter } from "../view-page/Supporter";
 export default async function PublicProfilePage({
   params,
 }: {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }) {
+  const { username } = await params;
   const user = await prisma.user.findUnique({
-    where: { username: params.username },
+    where: { username },
     include: { profile: true },
   });
 

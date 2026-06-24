@@ -21,8 +21,8 @@ export const Cover = ({
       const form = new FormData();
 
       form.append("file", e.target.files[0]);
-      // form.append("profileId", id);
-
+      form.append("profileId", id);
+      form.append("field", "backgroundImage");
       axios.put("/api/upload", form).then((res) => {
         setImage(res.data.url);
         setLoading(false);
