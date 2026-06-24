@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 export default function SignupPage() {
   const router = useRouter();
 
-  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [error, setError] = useState("");
@@ -26,8 +26,8 @@ export default function SignupPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
           username,
+          email,
           password,
         }),
       });
@@ -59,19 +59,18 @@ export default function SignupPage() {
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-          required
-        />
-
-        <input
           type="text"
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          className="w-full px-3 py-2 border rounded"
+          required
+        />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full px-3 py-2 border rounded"
           required
         />

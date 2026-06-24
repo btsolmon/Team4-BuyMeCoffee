@@ -37,7 +37,7 @@ export default function SigninPage() {
         return;
       }
 
-      router.push("/view-page");
+      router.push("/");
       router.refresh();
     } catch (err) {
       setError("Server error");

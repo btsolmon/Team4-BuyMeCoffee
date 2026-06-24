@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET(
-  _req: NextRequest,
-  { params }: { params: { userId: string } },
+  req: NextRequest,
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const donations = await prisma.donation.findMany({
-      where: { recipientId: params.userId },
+      where: { recipientId: userId },
       select: {
         id: true,
         amount: true,
@@ -27,7 +28,10 @@ export async function GET(
     });
 
     return NextResponse.json(donations);
-  } catch {
+  } catch (error) {
+    // Log the error for debugging
+    console.error("Failed to fetch donations:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
