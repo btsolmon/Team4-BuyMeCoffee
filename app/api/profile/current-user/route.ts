@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { authenticate } from "@/lib/authenticate";
 
 export async function GET(req: NextRequest) {
   try {
-    const authUser = await authenticate(req);
-    if (!authUser)
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
 
     const user = await prisma.user.findUnique({
-      where: { id: authUser.id },
+      where: { id: userId }, 
       select: {
         id: true,
         email: true,
@@ -38,11 +43,18 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(user);
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
