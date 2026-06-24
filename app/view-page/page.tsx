@@ -5,14 +5,14 @@ import ProfileInfo from "./ProfileInfo";
 import { Supporter } from "./Supporter";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { verifyToken } from "@/lib/token";
+import { verifyToken } from "@/lib/jwt";
 
 export default async function CreatorPreviewPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("access_token")?.value;
   if (!token) redirect("/login");
 
-  const payload = await verifyToken(token);
+  const payload = await verifyToken(token!);
   if (!payload) redirect("/login");
 
   const user = await prisma.user.findUnique({

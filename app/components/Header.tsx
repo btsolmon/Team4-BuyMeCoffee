@@ -1,5 +1,6 @@
 import { Coffee, ChevronDown, LogOut } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 interface HeaderProps {
@@ -13,6 +14,12 @@ export function Header({
   profileOpen,
   setProfileOpen,
 }: HeaderProps) {
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    
+    router.push("/");
+  };
   return (
     <header className="flex h-16 items-center justify-between px-10">
       <Link href="/" className="flex items-center gap-2">
@@ -45,11 +52,10 @@ export function Header({
         {profileOpen && (
           <div className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
             <button
-              onClick={() => setProfileOpen(false)}
-              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 cursor-pointer"
+              onClick={handleSignOut}
+              className="px-4 py-2 rounded bg-red-500 text-white"
             >
-              <LogOut size={14} />
-              Log out
+              Logout
             </button>
           </div>
         )}

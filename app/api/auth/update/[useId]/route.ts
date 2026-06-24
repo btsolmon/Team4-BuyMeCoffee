@@ -1,58 +1,45 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/token";
-import bcrypt from "bcrypt";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { verifyAccessToken } from '@/lib/jwt';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: { userId: string } }
 ) {
   try {
-    const token = req.cookies.get("access_token")?.value;
-
+    const token = req.headers.get('authorization')?.split(' ')[1];
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: 'Token олдсонгүй' }, { status: 401 });
     }
 
-    const payload = await verifyToken(token);
-
-    if (!payload || payload.sub !== params.userId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const payload = verifyAccessToken(token);
+    if (payload.sub !== params.userId) {
+      return NextResponse.json({ message: 'Эрх хүрэхгүй байна' }, { status: 403 });
     }
 
-    const body = await req.json();
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = {};
-
-    if (body.email) {
-      data.email = body.email.trim().toLowerCase();
-    }
-
-    if (body.username) {
-      data.username = body.username;
-    }
-
-    if (body.password) {
-      data.password = await bcrypt.hash(body.password, 10);
-    }
-
-    const updated = await prisma.user.update({
+    const user = await prisma.user.findUnique({
       where: { id: params.userId },
-      data,
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        updatedAt: true,
+    });
+    if (!user) {
+      return NextResponse.json({ message: 'Хэрэглэгч олдсонгүй' }, { status: 404 });
+    }
+
+    const { name, about, socialMediaURL, avatarImage, backgroundImage, successMessage } = await req.json();
+
+    const profile = await prisma.profile.update({
+      where: { id: user.profileId },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(about !== undefined && { about }),
+        ...(socialMediaURL !== undefined && { socialMediaURL }),
+        ...(avatarImage !== undefined && { avatarImage }),
+        ...(backgroundImage !== undefined && { backgroundImage }),
+        ...(successMessage !== undefined && { successMessage }),
       },
     });
 
-    return NextResponse.json(updated);
-  } catch {
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ profile });
+  } catch (e) {
+    return NextResponse.json({ message: 'Серверийн алдаа' }, { status: 500 });
   }
 }
