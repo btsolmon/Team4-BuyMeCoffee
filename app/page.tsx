@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -13,8 +14,15 @@ import {
 } from "lucide-react";
 import { Header } from "./components/Header";
 import Sidebar from "./components/Sidebar";
-import ExploreSection from "./components/ExploreSection"; // ExploreSection-оо импортлох
+import ExploreSection from "./components/ExploreSection";
 import { Profile, Donation, NAV_ITEMS, NavItemType } from "./types";
+
+type CurrentUser = {
+  id: string;
+  username: string;
+  email: string;
+  profile: Profile;
+};
 
 /* ----------------------------- Types & data ----------------------------- */
 
@@ -42,77 +50,206 @@ const AMOUNT_OPTIONS: { label: string; value: AmountValue | null }[] = [
   { label: "$10", value: 10 },
 ];
 
-interface CurrentUser {
-  id: string;
-  username: string;
-  profile: Profile;
-}
+function AccountSettingsSection({
+  currentUser,
+}: {
+  currentUser: CurrentUser | null;
+}) {
+  const [name, setName] = useState("");
+  const [about, setAbout] = useState("");
+  const [socialMediaURL, setSocialMediaURL] = useState("");
 
-function AccountSettingsSection() {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  useEffect(() => {
+    if (currentUser?.profile) {
+      setName(currentUser.profile.name ?? "");
+      setAbout(currentUser.profile.about ?? "");
+      setSocialMediaURL(currentUser.profile.socialMediaURL ?? "");
+    }
+  }, [currentUser]);
+
+  async function handlePersonalInfoSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    try {
+      const res = await fetch(`/api/profile/${currentUser.profile.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, about, socialMediaURL }),
+      });
+      if (res.ok) {
+        alert("Personal info updated successfully!");
+        // Optionally, you can refresh the user data here
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Failed to save personal info:", error);
+      alert("An unexpected error occurred.");
+    }
+  }
+
+  async function handlePasswordSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+    if (!currentUser) return;
+
+    try {
+      const res = await fetch(`/api/user/password`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: currentUser.id, password: newPassword }),
+      });
+
+      if (res.ok) {
+        alert("Password updated successfully!");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("Failed to save new password:", error);
+      alert("An unexpected error occurred.");
+    }
+  }
+
+  function handlePaymentSave(e: React.FormEvent) {
+    e.preventDefault();
+    console.log("Saving payment details...");
+    // TODO: Implement API call for payment details
+    alert("Payment details save functionality not implemented yet.");
+  }
+
+  function handleSuccessPageSave(e: React.FormEvent) {
+    e.preventDefault();
+    console.log("Saving success page message...");
+    // TODO: Implement API call for success page message
+    alert("Success page save functionality not implemented yet.");
+  }
+
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">
       <h1 className="text-2xl font-bold">My account</h1>
 
       {/* Personal Info Section */}
-      <Section title="Personal Info">
+      <Section title="Personal Info" onSubmit={handlePersonalInfoSave}>
         <div className="flex items-center gap-4 mb-4">
           <div
             style={{
               width: 160,
               height: 160,
-              background: "linear-gradient(135deg, #fb7185, #f472b6, #818cf8)",
+              backgroundImage: `url(${currentUser?.profile.avatarImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
             }}
-            className="rounded-full ring-4 ring-white"
+            className="rounded-full ring-4 ring-white bg-gray-200"
           />
         </div>
-        <InputField label="Name" placeholder="Jake" />
-        <TextAreaField label="About" placeholder="I'm a typical person..." />
-        <InputField label="Social media URL" placeholder="https://..." />
+        <InputField
+          label="Name"
+          value={name}
+          onChange={(e: any) => setName(e.target.value)}
+          placeholder="Jake"
+        />
+        <TextAreaField
+          label="About"
+          value={about}
+          onChange={(e: any) => setAbout(e.target.value)}
+          placeholder="I'm a typical person..."
+        />
+        <InputField
+          label="Social media URL"
+          value={socialMediaURL}
+          onChange={(e: any) => setSocialMediaURL(e.target.value)}
+          placeholder="https://..."
+        />
         <SaveButton />
       </Section>
 
       {/* Set a new password Section */}
-      <Section title="Set a new password">
+      <Section title="Set a new password" onSubmit={handlePasswordSave}>
         <InputField
           label="New password"
           type="password"
+          value={newPassword}
+          onChange={(e: any) => setNewPassword(e.target.value)}
           placeholder="Enter new password"
         />
         <InputField
           label="Confirm password"
           type="password"
+          value={confirmPassword}
+          onChange={(e: any) => setConfirmPassword(e.target.value)}
           placeholder="Confirm password"
         />
         <SaveButton />
       </Section>
 
       {/* Payment details Section */}
-      <Section title="Payment details">
+      <Section title="Payment details" onSubmit={handlePaymentSave}>
         <label className="block text-sm font-medium mb-1">Select country</label>
         <select className="w-full p-2 border rounded-lg mb-4">
           <option>United States</option>
         </select>
         <div className="grid grid-cols-2 gap-4">
-          <InputField label="First name" placeholder="Jake" />
-          <InputField label="Last name" placeholder="Mulligan" />
+          <InputField
+            label="First name"
+            placeholder="Jake"
+            value=""
+            onChange={() => {}}
+          />
+          <InputField
+            label="Last name"
+            placeholder="Mulligan"
+            value=""
+            onChange={() => {}}
+          />
         </div>
         <InputField
           label="Enter card number"
           placeholder="XXXX-XXXX-XXXX-XXXX"
+          value=""
+          onChange={() => {}}
         />
         <div className="grid grid-cols-3 gap-4">
-          <InputField label="Expires" placeholder="August" />
-          <InputField label="Year" placeholder="2028" />
-          <InputField label="CVC" placeholder="590" />
+          <InputField
+            label="Expires"
+            placeholder="August"
+            value=""
+            onChange={() => {}}
+          />
+          <InputField
+            label="Year"
+            placeholder="2028"
+            value=""
+            onChange={() => {}}
+          />
+          <InputField
+            label="CVC"
+            placeholder="590"
+            value=""
+            onChange={() => {}}
+          />
         </div>
         <SaveButton />
       </Section>
 
       {/* Success page Section */}
-      <Section title="Success page">
+      <Section title="Success page" onSubmit={handleSuccessPageSave}>
         <TextAreaField
           label="Confirmation message"
           placeholder="Thank you for supporting me!..."
+          value=""
+          onChange={() => {}}
         />
         <SaveButton />
       </Section>
@@ -124,39 +261,37 @@ function AccountSettingsSection() {
 function Section({
   title,
   children,
+  onSubmit,
 }: {
   title: string;
   children: React.ReactNode;
+  onSubmit: (e: React.FormEvent) => void;
 }) {
   return (
-    <form className="border p-6 rounded-xl shadow-sm space-y-4">
+    <form
+      onSubmit={onSubmit}
+      className="border p-6 rounded-xl shadow-sm space-y-4"
+    >
       <h2 className="text-lg font-bold">{title}</h2>
       {children}
     </form>
   );
 }
 
-function InputField({ label, placeholder, type = "text" }: any) {
+function InputField({ label, ...props }: any) {
   return (
     <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="w-full p-2 border rounded-lg"
-      />
+      <input {...props} className="w-full p-2 border rounded-lg" />
     </div>
   );
 }
 
-function TextAreaField({ label, placeholder }: any) {
+function TextAreaField({ label, ...props }: any) {
   return (
     <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
-      <textarea
-        placeholder={placeholder}
-        className="w-full p-2 border rounded-lg h-24"
-      />
+      <textarea {...props} className="w-full p-2 border rounded-lg h-24" />
     </div>
   );
 }
@@ -223,6 +358,7 @@ function AvatarDisplay({
 /* -------------------------------- Page ----------------------------------- */
 
 export default function Page() {
+  const router = useRouter();
   const [activeNav, setActiveNav] =
     useState<(typeof NAV_ITEMS)[number]>("Home");
   const [searchQuery, setSearchQuery] = useState("");
@@ -326,12 +462,24 @@ export default function Page() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  async function handleLogout() {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+    } catch (error) {
+      console.error("Failed to log out:", error);
+      alert("Logout failed. Please try again.");
+    }
+  }
+
   return (
     <div className="px-10 min-h-screen bg-white font-sans text-gray-900">
       <Header
         profileRef={profileRef}
         profileOpen={profileOpen}
         setProfileOpen={setProfileOpen}
+        currentUser={currentUser}
+        handleLogout={handleLogout}
       />
 
       <div className="flex">
@@ -351,7 +499,7 @@ export default function Page() {
               filteredCreators={filteredProfiles}
             />
           ) : activeNav === "Account settings" ? (
-            <AccountSettingsSection />
+            <AccountSettingsSection currentUser={currentUser} />
           ) : (
             <>
               {/* Profile + earnings card */}

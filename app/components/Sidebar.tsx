@@ -1,6 +1,7 @@
 "use client";
 
 import { ExternalLink } from "lucide-react";
+import Link from "next/link"; // Link-ийг импортлох
 import { NavItemType } from "../types";
 
 interface SidebarProps {
@@ -21,12 +22,11 @@ export default function Sidebar({
       <nav className="space-y-1">
         {navItems.map((item) =>
           item === "View page" ? (
-            <a
+            <Link
               key={item}
-              href={`https://${pageUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/view-page"
               onClick={() => setActiveNav(item)}
+              prefetch={true}
               className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 activeNav === item
                   ? "bg-gray-100 text-gray-900"
@@ -34,8 +34,7 @@ export default function Sidebar({
               }`}
             >
               {item}
-              <ExternalLink size={14} className="ml-auto text-gray-400" />
-            </a>
+            </Link>
           ) : (
             <button
               key={item}

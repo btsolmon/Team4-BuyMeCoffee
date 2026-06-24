@@ -21,11 +21,7 @@ export default async function PublicProfilePage({
 
   return (
     <div className="w-full min-h-screen bg-white pb-20">
-      <Cover
-        id={profile.id}
-        cover={profile.backgroundImage}
-        isOwner={false}
-      />
+      <Cover id={profile.id} cover={profile.backgroundImage} isOwner={false} />
 
       <div className="flex justify-center">
         <div className="container px-10">
@@ -43,10 +39,7 @@ export default async function PublicProfilePage({
             </div>
 
             <div className="w-1/2">
-              <DonationCard
-                creatorName={profile.name}
-                recipientId={user.id}
-              />
+              <DonationCard creatorName={profile.name} recipientId={user.id} />
             </div>
           </div>
         </div>
