@@ -7,7 +7,12 @@ export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email?.trim().toLowerCase();
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
     if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -16,6 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const match = await bcrypt.compare(password, user.password);
+
     if (!match) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -24,10 +30,13 @@ export async function POST(req: NextRequest) {
     }
 
     const { password: _, ...userWithoutPassword } = user;
+
     const accessToken = await generateToken(user.id, user.email, "15m");
     const refreshToken = await generateToken(user.id, user.email, "7d", true);
 
-    const res = NextResponse.json({ user: userWithoutPassword });
+    const res = NextResponse.json({
+      user: userWithoutPassword,
+    });
 
     res.cookies.set("access_token", accessToken, {
       httpOnly: true,

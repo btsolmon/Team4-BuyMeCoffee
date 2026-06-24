@@ -1,4 +1,5 @@
 import { Coffee, ChevronDown, LogOut } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 interface HeaderProps {
@@ -14,10 +15,10 @@ export function Header({
 }: HeaderProps) {
   return (
     <header className="flex h-16 items-center justify-between px-10">
-      <div className="flex items-center gap-2">
+      <Link href="/" className="flex items-center gap-2">
         <Coffee size={24} strokeWidth={2.25} />
         <span className="text-[16px] font-bold">Buy Me Coffee</span>
-      </div>
+      </Link>
       <div className="relative" ref={profileRef}>
         <button
           onClick={() => setProfileOpen((v: boolean) => !v)}
