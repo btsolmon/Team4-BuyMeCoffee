@@ -1,22 +1,37 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
-import { verifyToken } from "@/lib/jwt";
+import { signTokens, verifyRefreshToken, verifyToken } from "@/lib/jwt";
+import { setAuthCookies } from "@/lib/auth-cookies";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get("access_token")?.value;
+    let accessToken = cookieStore.get("access_token")?.value;
+    let userId: string | undefined;
+    let shouldRefreshCookies = false;
+    let newTokens: ReturnType<typeof signTokens> | null = null;
 
-    if (!accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (accessToken) {
+      const payload = await verifyToken(accessToken);
+      userId = payload?.sub as string | undefined;
     }
 
-    const payload = await verifyToken(accessToken);
-    const userId = payload?.sub; // ← setSubject(userId) тул .sub дотор байна
-
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const refreshToken = cookieStore.get("refresh_token")?.value;
+      if (refreshToken) {
+        try {
+          const payload = verifyRefreshToken(refreshToken);
+          userId = payload.sub;
+          newTokens = signTokens(userId);
+          accessToken = newTokens.accessToken;
+          shouldRefreshCookies = true;
+        } catch {
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+      } else {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     const user = await prisma.user.findUnique({
@@ -53,8 +68,13 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(user);
-  } catch (error) {
+    const response = NextResponse.json(user);
+    if (shouldRefreshCookies && newTokens) {
+      setAuthCookies(response, newTokens.accessToken, newTokens.refreshToken);
+    }
+
+    return response;
+  } catch {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

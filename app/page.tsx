@@ -403,7 +403,7 @@ export default function Page() {
       )
       .catch(() => setProfiles([]));
 
-    fetch("/api/profile/current-user", { credentials: "same-origin" })
+    fetch("/api/profile/current-user", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => {
         if (!user) return;
