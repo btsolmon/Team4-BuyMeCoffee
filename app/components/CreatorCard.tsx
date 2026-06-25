@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { Creator } from "../types";
 
 export function CreatorCard({ creator }: { creator: Creator }) {
@@ -15,15 +16,13 @@ export function CreatorCard({ creator }: { creator: Creator }) {
           <h3 className="text-xl font-bold text-gray-900">{creator.name}</h3>
         </div>
 
-        <a
+        <Link
           href={creator.username ? `/${creator.username}` : "#"}
-          target="_blank"
-          rel="noopener noreferrer"
           className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 transition-colors"
         >
           View profile
           <ExternalLink size={16} />
-        </a>
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 gap-8">

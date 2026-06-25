@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
 import { Cover } from "../view-page/Cover";
 import DonationCard from "../view-page/DonationCard";
 import ProfileInfo from "../view-page/ProfileInfo";
 import { Supporter } from "../view-page/Supporter";
+import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -13,18 +14,26 @@ export default async function PublicProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
-  const user = await prisma.user.findUnique({
-    where: { username },
-    include: { profile: true },
-  });
+  const [user, currentUser] = await Promise.all([
+    prisma.user.findUnique({
+      where: { username },
+      include: { profile: true },
+    }),
+    getCurrentUser(),
+  ]);
 
   if (!user) notFound();
 
   const { profile } = user;
+  const isOwner = currentUser?.id === user.id;
 
   return (
     <div className="w-full min-h-screen bg-white pb-20">
-      <Cover id={profile.id} cover={profile.backgroundImage} isOwner={false} />
+      <Cover
+        id={profile.id}
+        cover={profile.backgroundImage}
+        isOwner={isOwner}
+      />
 
       <div className="flex justify-center">
         <div className="container px-10">
@@ -37,6 +46,7 @@ export default async function PublicProfilePage({
                 currentAbout={profile.about ?? null}
                 username={user.username}
                 currentSocialMediaURL={profile.socialMediaURL}
+                isOwner={isOwner}
               />
               <Supporter name={profile.name} userId={user.id} />
             </div>

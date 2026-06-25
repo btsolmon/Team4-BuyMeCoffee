@@ -24,6 +24,7 @@ export default function SigninPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "same-origin",
         body: JSON.stringify({
           email,
           password,
@@ -33,7 +34,7 @@ export default function SigninPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.message || data.error || "Login failed");
         return;
       }
 

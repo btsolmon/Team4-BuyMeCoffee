@@ -7,6 +7,7 @@ export default function ProfileInfo({
   currentAbout,
   username,
   currentSocialMediaURL,
+  isOwner = false,
 }: {
   profileId: string;
   currentAvatar: string | null;
@@ -14,6 +15,7 @@ export default function ProfileInfo({
   currentAbout: string | null;
   username: string;
   currentSocialMediaURL?: string | null;
+  isOwner?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -31,13 +33,15 @@ export default function ProfileInfo({
             </div>
             <h1 className="text-xl font-bold text-gray-900">{currentName}</h1>
           </div>
-          <DialogDemo
-            profileId={profileId}
-            currentAvatar={currentAvatar ?? undefined}
-            currentName={currentName}
-            currentAbout={currentAbout ?? undefined}
-            currentSocialMediaURL={currentSocialMediaURL ?? undefined}
-          />
+          {isOwner && (
+            <DialogDemo
+              profileId={profileId}
+              currentAvatar={currentAvatar ?? undefined}
+              currentName={currentName}
+              currentAbout={currentAbout ?? undefined}
+              currentSocialMediaURL={currentSocialMediaURL ?? undefined}
+            />
+          )}
         </div>
 
         <div className="mt-6">

@@ -1,16 +1,15 @@
+import { redirect } from "next/navigation";
 import { Cover } from "./Cover";
 import DonationCard from "./DonationCard";
 import ProfileInfo from "./ProfileInfo";
 import { Supporter } from "./Supporter";
-import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function CreatorPreviewPage() {
-  const user = await prisma.user.findFirst({
-    include: { profile: true },
-  });
-  if (!user) return null;
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
   const { profile } = user;
   return (
@@ -27,6 +26,7 @@ export default async function CreatorPreviewPage() {
                 currentAbout={profile.about ?? null}
                 username={user.username}
                 currentSocialMediaURL={profile.socialMediaURL}
+                isOwner={true}
               />
               <Supporter name={profile.name} userId={user.id} />
             </div>
