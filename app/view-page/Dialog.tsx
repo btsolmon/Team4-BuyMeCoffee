@@ -31,7 +31,7 @@ export function DialogDemo({
 }) {
   const [avatar, setAvatar] = useState(currentAvatar);
   const [loading, setLoading] = useState(false);
-  const [about, setAbout] = useState("");
+  const [about, setAbout] = useState(currentAbout ?? "");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(currentName);
   const [socialMediaURL, setSocialMediaURL] = useState(

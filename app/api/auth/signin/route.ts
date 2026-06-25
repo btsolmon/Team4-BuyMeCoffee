@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signTokens } from "@/lib/jwt";
+import { setAuthCookies } from "@/lib/auth-cookies";
 import bcrypt from "bcrypt";
 
 export async function POST(req: NextRequest) {
@@ -36,7 +37,9 @@ export async function POST(req: NextRequest) {
     const tokens = signTokens(user.id);
     const { password: _, ...safeUser } = user;
 
-    return NextResponse.json({ ...tokens, user: safeUser });
+    const response = NextResponse.json({ user: safeUser });
+    setAuthCookies(response, tokens.accessToken, tokens.refreshToken);
+    return response;
   } catch (e) {
     return NextResponse.json({ message: "Серверийн алдаа" }, { status: 500 });
   }

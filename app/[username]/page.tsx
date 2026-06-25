@@ -5,6 +5,8 @@ import DonationCard from "../view-page/DonationCard";
 import ProfileInfo from "../view-page/ProfileInfo";
 import { Supporter } from "../view-page/Supporter";
 
+export const dynamic = "force-dynamic";
+
 export default async function PublicProfilePage({
   params,
 }: {

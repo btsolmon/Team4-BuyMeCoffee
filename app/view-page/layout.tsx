@@ -1,29 +1,36 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Header } from "../components/Header";
-import { User, Profile } from "@prisma/client";
 
-type UserWithProfile = User & { profile: Profile };
-
-function getUser(): UserWithProfile | null {
-  if (typeof window === "undefined") return null;
-  const stored = localStorage.getItem("user");
-  return stored ? JSON.parse(stored) : null;
-}
+type ViewPageUser = {
+  profile: {
+    name: string;
+    avatarImage?: string | null;
+  };
+} | null;
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [user] = useState<UserWithProfile | null>(getUser);
+  const [user, setUser] = useState<ViewPageUser>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
-    router.push("/");
+  useEffect(() => {
+    fetch("/api/profile/current-user")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setUser(data))
+      .catch(() => setUser(null));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Failed to log out:", error);
+    }
+    router.push("/login");
   };
 
   return (

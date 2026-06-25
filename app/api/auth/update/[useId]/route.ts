@@ -4,21 +4,22 @@ import { verifyAccessToken } from '@/lib/jwt';
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ useId: string }> },
 ) {
   try {
-    const token = req.headers.get('authorization')?.split(' ')[1];
+    const { useId: userId } = await params;
+    const token = req.headers.get("authorization")?.split(" ")[1];
     if (!token) {
-      return NextResponse.json({ message: 'Token олдсонгүй' }, { status: 401 });
+      return NextResponse.json({ message: "Token олдсонгүй" }, { status: 401 });
     }
 
     const payload = verifyAccessToken(token);
-    if (payload.sub !== params.userId) {
+    if (payload.sub !== userId) {
       return NextResponse.json({ message: 'Эрх хүрэхгүй байна' }, { status: 403 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: params.userId },
+      where: { id: userId },
     });
     if (!user) {
       return NextResponse.json({ message: 'Хэрэглэгч олдсонгүй' }, { status: 404 });

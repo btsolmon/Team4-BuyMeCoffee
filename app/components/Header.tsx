@@ -1,16 +1,19 @@
-/* eslint-disable @next/next/no-img-element */
 import { Coffee, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { User, Profile } from "@prisma/client";
 
-type UserWithProfile = User & { profile: Profile };
+type HeaderUser = {
+  profile: {
+    name: string;
+    avatarImage?: string | null;
+  };
+} | null;
 
 interface HeaderProps {
   profileRef: React.RefObject<HTMLDivElement | null>;
   profileOpen: boolean;
   setProfileOpen: (open: boolean | ((prevState: boolean) => boolean)) => void;
-  user: UserWithProfile | null;
+  user: HeaderUser;
   handleLogout: () => void;
 }
 

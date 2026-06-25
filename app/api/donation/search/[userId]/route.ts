@@ -3,14 +3,15 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
+    const { userId } = await params;
     const amount = req.nextUrl.searchParams.get("amount");
 
     const donations = await prisma.donation.findMany({
       where: {
-        recipientId: params.userId,
+        recipientId: userId,
         ...(amount ? { amount: Number(amount) } : {}),
       },
       select: {
