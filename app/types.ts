@@ -36,3 +36,57 @@ export interface Profile {
   username?: string;
 }
 export type Creator = Profile;
+
+export interface BankCard {
+  id: string;
+  country: string;
+  firstName: string;
+  lastName: string;
+  cardNumber: string;
+  expiryDate: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  username: string;
+  email: string;
+  profile: Profile;
+  bankCard?: BankCard | null;
+}
+
+export type EarningsRange = "Last 30 days" | "Last 90 days" | "All time";
+
+export const EARNINGS_OPTIONS: EarningsRange[] = [
+  "Last 30 days",
+  "Last 90 days",
+  "All time",
+];
+
+export const EARNINGS_DAYS: Record<EarningsRange, number | null> = {
+  "Last 30 days": 30,
+  "Last 90 days": 90,
+  "All time": null,
+};
+
+export const AMOUNT_OPTIONS: { label: string; value: AmountValue | null }[] = [
+  { label: "All amounts", value: null },
+  { label: "$1", value: 1 },
+  { label: "$2", value: 2 },
+  { label: "$5", value: 5 },
+  { label: "$10", value: 10 },
+];
+
+export const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];

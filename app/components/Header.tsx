@@ -15,6 +15,7 @@ interface HeaderProps {
   setProfileOpen: (open: boolean | ((prevState: boolean) => boolean)) => void;
   user: HeaderUser;
   handleLogout: () => void;
+  onLogoClick?: () => void;
 }
 
 export function Header({
@@ -23,10 +24,15 @@ export function Header({
   setProfileOpen,
   user,
   handleLogout,
+  onLogoClick,
 }: HeaderProps) {
   return (
     <header className="flex h-16 items-center justify-between px-10">
-      <Link href="/" className="flex items-center gap-2">
+      <Link
+        href="/"
+        onClick={onLogoClick}
+        className="flex items-center gap-2"
+      >
         <Coffee size={24} strokeWidth={2.25} />
         <span className="text-[16px] font-bold">Buy Me Coffee</span>
       </Link>

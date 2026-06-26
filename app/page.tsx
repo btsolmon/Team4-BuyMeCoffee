@@ -1,521 +1,32 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useRouter } from "next/navigation";
 
-import { useEffect, useRef, useState } from "react";
-import {
-  Check,
-  ChevronDown,
-  Coffee,
-  Copy,
-  ExternalLink,
-  Heart,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import ExploreSection from "./components/ExploreSection";
-import { Profile, Donation, NAV_ITEMS } from "./types";
-
-type BankCard = {
-  id: string;
-  country: string;
-  firstName: string;
-  lastName: string;
-  cardNumber: string;
-  expiryDate: string;
-};
-
-type CurrentUser = {
-  id: string;
-  username: string;
-  email: string;
-  profile: Profile;
-  bankCard?: BankCard | null;
-};
-
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-/* ----------------------------- Types & data ----------------------------- */
-
-type EarningsRange = "Last 30 days" | "Last 90 days" | "All time";
-
-const EARNINGS_OPTIONS: EarningsRange[] = [
-  "Last 30 days",
-  "Last 90 days",
-  "All time",
-];
-
-const EARNINGS_DAYS: Record<EarningsRange, number | null> = {
-  "Last 30 days": 30,
-  "Last 90 days": 90,
-  "All time": null,
-};
-type AmountValue = 1 | 2 | 5 | 10;
-
-const AMOUNT_OPTIONS: { label: string; value: AmountValue | null }[] = [
-  { label: "All amounts", value: null },
-  { label: "$1", value: 1 },
-  { label: "$2", value: 2 },
-  { label: "$5", value: 5 },
-  { label: "$10", value: 10 },
-];
-
-function AccountSettingsSection({
-  currentUser,
-}: {
-  currentUser: CurrentUser | null;
-}) {
-  const [name, setName] = useState("");
-  const [about, setAbout] = useState("");
-  const [socialMediaURL, setSocialMediaURL] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [country, setCountry] = useState("Mongolia");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiresMonth, setExpiresMonth] = useState("");
-  const [expiresYear, setExpiresYear] = useState("");
-  const [cvc, setCvc] = useState("");
-
-  const [successMessage, setSuccessMessage] = useState("");
-
-  const [savingPayment, setSavingPayment] = useState(false);
-  const [savingSuccess, setSavingSuccess] = useState(false);
-  const [savingPersonal, setSavingPersonal] = useState(false);
-  const [savingPassword, setSavingPassword] = useState(false);
-
-  useEffect(() => {
-    if (currentUser?.profile) {
-      setName(currentUser.profile.name ?? "");
-      setAbout(currentUser.profile.about ?? "");
-      setSocialMediaURL(currentUser.profile.socialMediaURL ?? "");
-      setSuccessMessage(currentUser.profile.successMessage ?? "");
-    }
-    if (currentUser?.bankCard) {
-      const card = currentUser.bankCard;
-      setCountry(card.country ?? "Mongolia");
-      setFirstName(card.firstName ?? "");
-      setLastName(card.lastName ?? "");
-      setCardNumber(card.cardNumber ?? "");
-      if (card.expiryDate) {
-        const d = new Date(card.expiryDate);
-        if (!isNaN(d.getTime())) {
-          setExpiresMonth(MONTHS[d.getMonth()]);
-          setExpiresYear(String(d.getFullYear()));
-        }
-      }
-    }
-  }, [currentUser]);
-
-  async function handlePersonalInfoSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    setSavingPersonal(true);
-    try {
-      const res = await fetch(`/api/profile/${currentUser.profile.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ name, about, socialMediaURL }),
-      });
-      if (res.ok) {
-        alert("Personal info updated successfully!");
-      } else {
-        const error = await res.json();
-        alert(`Error: ${error.error ?? error.message}`);
-      }
-    } catch (error) {
-      console.error("Failed to save personal info:", error);
-      alert("An unexpected error occurred.");
-    } finally {
-      setSavingPersonal(false);
-    }
-  }
-
-  async function handlePasswordSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      alert("Passwords do not match!");
-      return;
-    }
-    if (newPassword.length < 8) {
-      alert("Password must be at least 8 characters");
-      return;
-    }
-    if (!currentUser) return;
-
-    setSavingPassword(true);
-    try {
-      const res = await fetch(`/api/user/password`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ password: newPassword }),
-      });
-
-      if (res.ok) {
-        alert("Password updated successfully!");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        const error = await res.json();
-        alert(`Error: ${error.message ?? error.error}`);
-      }
-    } catch (error) {
-      console.error("Failed to save new password:", error);
-      alert("An unexpected error occurred.");
-    } finally {
-      setSavingPassword(false);
-    }
-  }
-
-  async function handlePaymentSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    if (
-      !firstName ||
-      !lastName ||
-      !cardNumber ||
-      !expiresMonth ||
-      !expiresYear
-    ) {
-      alert("Please fill in all payment fields.");
-      return;
-    }
-
-    const monthIndex = MONTHS.indexOf(expiresMonth);
-    const expiryDate = new Date(
-      Number(expiresYear),
-      monthIndex < 0 ? 0 : monthIndex,
-      1,
-    ).toISOString();
-
-    setSavingPayment(true);
-    try {
-      const res = await fetch(`/api/bankcard`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          country,
-          firstName,
-          lastName,
-          cardNumber,
-          expiryDate,
-        }),
-      });
-
-      if (res.ok) {
-        alert("Payment details saved successfully!");
-        setCvc("");
-      } else {
-        const error = await res.json();
-        alert(`Error: ${error.error ?? error.message}`);
-      }
-    } catch (error) {
-      console.error("Failed to save payment details:", error);
-      alert("An unexpected error occurred.");
-    } finally {
-      setSavingPayment(false);
-    }
-  }
-
-  async function handleSuccessPageSave(e: React.FormEvent) {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    setSavingSuccess(true);
-    try {
-      const res = await fetch(`/api/profile/${currentUser.profile.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ successMessage }),
-      });
-
-      if (res.ok) {
-        alert("Success page message saved!");
-      } else {
-        const error = await res.json();
-        alert(`Error: ${error.error ?? error.message}`);
-      }
-    } catch (error) {
-      console.error("Failed to save success message:", error);
-      alert("An unexpected error occurred.");
-    } finally {
-      setSavingSuccess(false);
-    }
-  }
-
-  return (
-    <div className="max-w-3xl mx-auto p-6 space-y-8">
-      <h1 className="text-2xl font-bold">My account</h1>
-
-      {/* Personal Info Section */}
-      <Section title="Personal Info" onSubmit={handlePersonalInfoSave}>
-        <div className="flex items-center gap-4 mb-4">
-          <div
-            style={{
-              width: 160,
-              height: 160,
-              backgroundImage: `url(${currentUser?.profile.avatarImage})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }}
-            className="rounded-full ring-4 ring-white bg-gray-200"
-          />
-        </div>
-        <InputField
-          label="Name"
-          value={name}
-          onChange={(e: any) => setName(e.target.value)}
-          placeholder=""
-        />
-        <TextAreaField
-          label="About"
-          value={about}
-          onChange={(e: any) => setAbout(e.target.value)}
-          placeholder=""
-        />
-        <InputField
-          label="Social media URL"
-          value={socialMediaURL}
-          onChange={(e: any) => setSocialMediaURL(e.target.value)}
-          placeholder=""
-        />
-        <SaveButton loading={savingPersonal} />
-      </Section>
-
-      {/* Set a new password Section */}
-      <Section title="Set a new password" onSubmit={handlePasswordSave}>
-        <InputField
-          label="New password"
-          type="password"
-          value={newPassword}
-          onChange={(e: any) => setNewPassword(e.target.value)}
-          placeholder="Enter new password"
-        />
-        <InputField
-          label="Confirm password"
-          type="password"
-          value={confirmPassword}
-          onChange={(e: any) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm password"
-        />
-        <SaveButton loading={savingPassword} />
-      </Section>
-
-      {/* Payment details Section */}
-      <Section title="Payment details" onSubmit={handlePaymentSave}>
-        <label className="block text-sm font-medium mb-1">Select country</label>
-        <select
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="w-full p-2 border rounded-lg mb-4"
-        >
-          <option value="Mongolia">Mongolia</option>
-          <option value="United States">United States</option>
-        </select>
-        <div className="grid grid-cols-2 gap-4">
-          <InputField
-            label="First name"
-            placeholder="Jake"
-            value={firstName}
-            onChange={(e: any) => setFirstName(e.target.value)}
-          />
-          <InputField
-            label="Last name"
-            placeholder="Mulligan"
-            value={lastName}
-            onChange={(e: any) => setLastName(e.target.value)}
-          />
-        </div>
-        <InputField
-          label="Enter card number"
-          placeholder="XXXX-XXXX-XXXX-XXXX"
-          value={cardNumber}
-          onChange={(e: any) => setCardNumber(e.target.value)}
-        />
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Expires</label>
-            <select
-              value={expiresMonth}
-              onChange={(e) => setExpiresMonth(e.target.value)}
-              className="w-full p-2 border rounded-lg"
-            >
-              <option value="">Month</option>
-              {MONTHS.map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-          </div>
-          <InputField
-            label="Year"
-            placeholder="2028"
-            value={expiresYear}
-            onChange={(e: any) => setExpiresYear(e.target.value)}
-          />
-          <InputField
-            label="CVC"
-            placeholder="590"
-            value={cvc}
-            onChange={(e: any) => setCvc(e.target.value)}
-          />
-        </div>
-        <SaveButton loading={savingPayment} />
-      </Section>
-
-      {/* Success page Section */}
-      <Section title="Success page" onSubmit={handleSuccessPageSave}>
-        <TextAreaField
-          label="Confirmation message"
-          placeholder="Thank you for supporting me!..."
-          value={successMessage}
-          onChange={(e: any) => setSuccessMessage(e.target.value)}
-        />
-        <SaveButton loading={savingSuccess} />
-      </Section>
-    </div>
-  );
-}
-
-/* Туслах бүрэлдэхүүн хэсгүүд */
-function Section({
-  title,
-  children,
-  onSubmit,
-}: {
-  title: string;
-  children: React.ReactNode;
-  onSubmit: (e: React.FormEvent) => void;
-}) {
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="border p-6 rounded-xl shadow-sm space-y-4"
-    >
-      <h2 className="text-lg font-bold">{title}</h2>
-      {children}
-    </form>
-  );
-}
-
-function InputField({ label, ...props }: any) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <input {...props} className="w-full p-2 border rounded-lg" />
-    </div>
-  );
-}
-
-function TextAreaField({ label, ...props }: any) {
-  return (
-    <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
-      <textarea {...props} className="w-full p-2 border rounded-lg h-24" />
-    </div>
-  );
-}
-
-function SaveButton({ loading = false }: { loading?: boolean }) {
-  return (
-    <button
-      type="submit"
-      disabled={loading}
-      className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition disabled:opacity-50"
-    >
-      {loading ? "Saving..." : "Save changes"}
-    </button>
-  );
-}
-
-/* ------------------------------- Helpers -------------------------------- */
-
-function useOutsideClick<T extends HTMLElement>(onOutside: () => void) {
-  const ref = useRef<T>(null);
-  useEffect(() => {
-    function handle(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onOutside();
-      }
-    }
-    document.addEventListener("mousedown", handle);
-    return () => document.removeEventListener("mousedown", handle);
-  }, [onOutside]);
-  return ref;
-}
-
-/**
- * Renamed to AvatarDisplay to avoid conflict with the Avatar type definition.
- */
-function AvatarDisplay({
-  src,
-  name,
-  size = 40,
-}: {
-  src?: string | null;
-  name: string;
-  size?: number;
-}) {
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={name}
-        style={{ width: size, height: size }}
-        className="shrink-0 rounded-full object-cover"
-      />
-    );
-  }
-  return (
-    <div
-      style={{ width: size, height: size }}
-      className="flex shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500"
-    >
-      {name.charAt(0).toUpperCase()}
-    </div>
-  );
-}
-
-/* -------------------------------- Page ----------------------------------- */
+import { AccountSettings } from "./components/AccountSettings";
+import { EarningsCard } from "./components/EarningsCard";
+import { RecentTransactions } from "./components/RecentTransactions";
+import { useOutsideClick } from "./hooks/useOutsideClick";
+import {
+  CurrentUser,
+  Donation,
+  EARNINGS_DAYS,
+  EarningsRange,
+  NAV_ITEMS,
+  Profile,
+} from "./types";
 
 export default function Page() {
   const router = useRouter();
+
   const [activeNav, setActiveNav] =
     useState<(typeof NAV_ITEMS)[number]>("Home");
   const [searchQuery, setSearchQuery] = useState("");
   const [earningsRange, setEarningsRange] =
     useState<EarningsRange>("Last 30 days");
-  const [earningsOpen, setEarningsOpen] = useState(false);
-  const earningsRef = useOutsideClick<HTMLDivElement>(() =>
-    setEarningsOpen(false),
-  );
-
-  const [amountFilter, setAmountFilter] = useState<AmountValue | null>(null);
-  const [amountOpen, setAmountOpen] = useState(false);
-  const amountRef = useOutsideClick<HTMLDivElement>(() => setAmountOpen(false));
 
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useOutsideClick<HTMLDivElement>(() =>
@@ -527,7 +38,6 @@ export default function Page() {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [earnings, setEarnings] = useState(0);
   const [copied, setCopied] = useState(false);
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [pageUrl, setPageUrl] = useState("");
 
   useEffect(() => {
@@ -581,21 +91,6 @@ export default function Page() {
   const filteredProfiles = profiles.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
-  const filteredTransactions = amountFilter
-    ? donations.filter((t) => t.amount === amountFilter)
-    : donations;
-
-  function toggleExpanded(id: string) {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }
 
   function handleShare() {
     if (!currentUser) return;
@@ -624,6 +119,7 @@ export default function Page() {
         setProfileOpen={setProfileOpen}
         user={currentUser}
         handleLogout={handleLogout}
+        onLogoClick={() => setActiveNav("Home")}
       />
 
       <div className="flex">
@@ -634,7 +130,6 @@ export default function Page() {
           pageUrl={pageUrl}
         />
 
-        {/* Main content */}
         <main className="mx-auto w-full max-w-214.75 px-8 py-8">
           {activeNav === "Explore" ? (
             <ExploreSection
@@ -643,212 +138,20 @@ export default function Page() {
               filteredCreators={filteredProfiles}
             />
           ) : activeNav === "Account settings" ? (
-            <AccountSettingsSection currentUser={currentUser} />
+            <AccountSettings currentUser={currentUser} />
           ) : (
             <>
-              {/* Profile + earnings card */}
-              <section className="rounded-2xl border border-gray-200 p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <AvatarDisplay
-                      src={currentUser?.profile.avatarImage}
-                      name={currentUser?.profile.name ?? "User"}
-                      size={48}
-                    />
-                    <div>
-                      <p className="text-base font-bold text-gray-900">
-                        {currentUser?.profile.name ?? "—"}
-                      </p>
-                      <p className="text-sm text-gray-500">{pageUrl || "—"}</p>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleShare}
-                    className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 cursor-pointer"
-                  >
-                    {copied ? <Check size={14} /> : <Copy size={14} />}
-                    {copied ? "Copied!" : "Share page link"}
-                  </button>
-                </div>
-
-                <div className="mb-6 mt-5 h-0.5 bg-gray-200 w-full" />
-
-                <div className="flex items-center gap-3">
-                  <span className="text-base font-bold text-gray-900">
-                    Earnings
-                  </span>
-                  <div className="relative" ref={earningsRef}>
-                    <button
-                      onClick={() => setEarningsOpen((v) => !v)}
-                      aria-haspopup="listbox"
-                      aria-expanded={earningsOpen}
-                      className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50 cursor-pointer"
-                    >
-                      {earningsRange}
-                      <ChevronDown
-                        size={16}
-                        className={`text-gray-500 transition-transform ${
-                          earningsOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-
-                    {earningsOpen && (
-                      <div
-                        role="listbox"
-                        className="absolute left-0 z-20 mt-2 w-44 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-                      >
-                        {EARNINGS_OPTIONS.map((opt) => (
-                          <button
-                            key={opt}
-                            role="option"
-                            aria-selected={opt === earningsRange}
-                            onClick={() => {
-                              setEarningsRange(opt);
-                              setEarningsOpen(false);
-                            }}
-                            className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            {opt}
-                            {opt === earningsRange && (
-                              <Check size={14} className="text-gray-900" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <p className="mt-3 text-4xl font-extrabold tracking-tight text-gray-900">
-                  ${earnings.toLocaleString()}
-                </p>
-              </section>
-
-              {/* Recent transactions card */}
-              <section className="mt-8 rounded-2xl border border-gray-200">
-                <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-                  <h2 className="text-lg font-bold text-gray-900">
-                    Recent transactions
-                  </h2>
-
-                  {/* Amount filter dropdown-аа зөвхөн гүйлгээ байгаа үед л харуулах нь зүйтэй */}
-                  {donations.length > 0 && (
-                    <div className="relative" ref={amountRef}>
-                      <button
-                        onClick={() => setAmountOpen((v) => !v)}
-                        className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <ChevronDown
-                          size={16}
-                          className={`text-gray-500 transition-transform ${
-                            amountOpen ? "rotate-180" : ""
-                          }`}
-                        />
-                        {amountFilter ? `$${amountFilter}` : "Amount"}
-                      </button>
-
-                      {amountOpen && (
-                        <div className="absolute right-0 z-20 mt-2 w-36 rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
-                          {AMOUNT_OPTIONS.map((opt) => (
-                            <button
-                              key={opt.label}
-                              onClick={() => {
-                                setAmountFilter(opt.value);
-                                setAmountOpen(false);
-                              }}
-                              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                            >
-                              {opt.label}
-                              {opt.value === amountFilter && (
-                                <Check size={14} className="text-gray-900" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Гүйлгээ хоосон үеийн загвар */}
-                {filteredTransactions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
-                      <Heart size={32} className="text-black" />
-                    </div>
-                    <p className="text-gray-900 font-medium">
-                      You do not have any supporters yet
-                    </p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Share your page with your audience to get started.
-                    </p>
-                  </div>
-                ) : (
-                  <ul>
-                    {filteredTransactions.map((t) => {
-                      const isExpanded = expanded.has(t.id);
-                      return (
-                        <li
-                          key={t.id}
-                          className="border-b border-gray-100 px-6 py-5 last:border-b-0"
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3">
-                              <AvatarDisplay
-                                src={t.donor?.profile?.avatarImage}
-                                name={t.donor?.username || "Guest"}
-                              />
-                              <div>
-                                <p className="text-sm font-semibold text-gray-900">
-                                  {t.donor?.username || "Guest"}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {t.socialURLOrBuyMeACoffee || "No handle"}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="shrink-0 text-right">
-                              <p className="text-sm font-bold text-gray-900">
-                                + ${t.amount}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                {new Date(t.createdAt).toLocaleDateString(
-                                  "en-GB",
-                                  {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                  },
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          {t.specialMessage && (
-                            <p className="mt-2 text-sm leading-relaxed text-gray-700">
-                              {t.specialMessage}
-                              {t.specialMessage.length > 100 && (
-                                <>
-                                  {!isExpanded && "..."}
-                                  {"  "}
-                                  <button
-                                    onClick={() => toggleExpanded(t.id!)}
-                                    className="font-medium text-gray-900 underline"
-                                  >
-                                    {isExpanded ? "Show less" : "Show more"}
-                                  </button>
-                                </>
-                              )}
-                            </p>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
+              <EarningsCard
+                name={currentUser?.profile.name ?? "—"}
+                pageUrl={pageUrl}
+                avatarSrc={currentUser?.profile.avatarImage}
+                earnings={earnings}
+                earningsRange={earningsRange}
+                setEarningsRange={setEarningsRange}
+                copied={copied}
+                onShare={handleShare}
+              />
+              <RecentTransactions donations={donations} />
             </>
           )}
         </main>
