@@ -17,12 +17,37 @@ import Sidebar from "./components/Sidebar";
 import ExploreSection from "./components/ExploreSection";
 import { Profile, Donation, NAV_ITEMS } from "./types";
 
+type BankCard = {
+  id: string;
+  country: string;
+  firstName: string;
+  lastName: string;
+  cardNumber: string;
+  expiryDate: string;
+};
+
 type CurrentUser = {
   id: string;
   username: string;
   email: string;
   profile: Profile;
+  bankCard?: BankCard | null;
 };
+
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 /* ----------------------------- Types & data ----------------------------- */
 
@@ -60,11 +85,41 @@ function AccountSettingsSection({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [country, setCountry] = useState("Mongolia");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiresMonth, setExpiresMonth] = useState("");
+  const [expiresYear, setExpiresYear] = useState("");
+  const [cvc, setCvc] = useState("");
+
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [savingSuccess, setSavingSuccess] = useState(false);
+  const [savingPersonal, setSavingPersonal] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
   useEffect(() => {
     if (currentUser?.profile) {
       setName(currentUser.profile.name ?? "");
       setAbout(currentUser.profile.about ?? "");
       setSocialMediaURL(currentUser.profile.socialMediaURL ?? "");
+      setSuccessMessage(currentUser.profile.successMessage ?? "");
+    }
+    if (currentUser?.bankCard) {
+      const card = currentUser.bankCard;
+      setCountry(card.country ?? "Mongolia");
+      setFirstName(card.firstName ?? "");
+      setLastName(card.lastName ?? "");
+      setCardNumber(card.cardNumber ?? "");
+      if (card.expiryDate) {
+        const d = new Date(card.expiryDate);
+        if (!isNaN(d.getTime())) {
+          setExpiresMonth(MONTHS[d.getMonth()]);
+          setExpiresYear(String(d.getFullYear()));
+        }
+      }
     }
   }, [currentUser]);
 
@@ -72,22 +127,25 @@ function AccountSettingsSection({
     e.preventDefault();
     if (!currentUser) return;
 
+    setSavingPersonal(true);
     try {
       const res = await fetch(`/api/profile/${currentUser.profile.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ name, about, socialMediaURL }),
       });
       if (res.ok) {
         alert("Personal info updated successfully!");
-        // Optionally, you can refresh the user data here
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        alert(`Error: ${error.error ?? error.message}`);
       }
     } catch (error) {
       console.error("Failed to save personal info:", error);
       alert("An unexpected error occurred.");
+    } finally {
+      setSavingPersonal(false);
     }
   }
 
@@ -97,12 +155,18 @@ function AccountSettingsSection({
       alert("Passwords do not match!");
       return;
     }
+    if (newPassword.length < 8) {
+      alert("Password must be at least 8 characters");
+      return;
+    }
     if (!currentUser) return;
 
+    setSavingPassword(true);
     try {
       const res = await fetch(`/api/user/password`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ password: newPassword }),
       });
 
@@ -112,26 +176,93 @@ function AccountSettingsSection({
         setConfirmPassword("");
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        alert(`Error: ${error.message ?? error.error}`);
       }
     } catch (error) {
       console.error("Failed to save new password:", error);
       alert("An unexpected error occurred.");
+    } finally {
+      setSavingPassword(false);
     }
   }
 
-  function handlePaymentSave(e: React.FormEvent) {
+  async function handlePaymentSave(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Saving payment details...");
-    // TODO: Implement API call for payment details
-    alert("Payment details save functionality not implemented yet.");
+    if (!currentUser) return;
+
+    if (
+      !firstName ||
+      !lastName ||
+      !cardNumber ||
+      !expiresMonth ||
+      !expiresYear
+    ) {
+      alert("Please fill in all payment fields.");
+      return;
+    }
+
+    const monthIndex = MONTHS.indexOf(expiresMonth);
+    const expiryDate = new Date(
+      Number(expiresYear),
+      monthIndex < 0 ? 0 : monthIndex,
+      1,
+    ).toISOString();
+
+    setSavingPayment(true);
+    try {
+      const res = await fetch(`/api/bankcard`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          country,
+          firstName,
+          lastName,
+          cardNumber,
+          expiryDate,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Payment details saved successfully!");
+        setCvc("");
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.error ?? error.message}`);
+      }
+    } catch (error) {
+      console.error("Failed to save payment details:", error);
+      alert("An unexpected error occurred.");
+    } finally {
+      setSavingPayment(false);
+    }
   }
 
-  function handleSuccessPageSave(e: React.FormEvent) {
+  async function handleSuccessPageSave(e: React.FormEvent) {
     e.preventDefault();
-    console.log("Saving success page message...");
-    // TODO: Implement API call for success page message
-    alert("Success page save functionality not implemented yet.");
+    if (!currentUser) return;
+
+    setSavingSuccess(true);
+    try {
+      const res = await fetch(`/api/profile/${currentUser.profile.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ successMessage }),
+      });
+
+      if (res.ok) {
+        alert("Success page message saved!");
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.error ?? error.message}`);
+      }
+    } catch (error) {
+      console.error("Failed to save success message:", error);
+      alert("An unexpected error occurred.");
+    } finally {
+      setSavingSuccess(false);
+    }
   }
 
   return (
@@ -156,21 +287,21 @@ function AccountSettingsSection({
           label="Name"
           value={name}
           onChange={(e: any) => setName(e.target.value)}
-          placeholder="Jake"
+          placeholder=""
         />
         <TextAreaField
           label="About"
           value={about}
           onChange={(e: any) => setAbout(e.target.value)}
-          placeholder="I'm a typical person..."
+          placeholder=""
         />
         <InputField
           label="Social media URL"
           value={socialMediaURL}
           onChange={(e: any) => setSocialMediaURL(e.target.value)}
-          placeholder="https://..."
+          placeholder=""
         />
-        <SaveButton />
+        <SaveButton loading={savingPersonal} />
       </Section>
 
       {/* Set a new password Section */}
@@ -189,56 +320,70 @@ function AccountSettingsSection({
           onChange={(e: any) => setConfirmPassword(e.target.value)}
           placeholder="Confirm password"
         />
-        <SaveButton />
+        <SaveButton loading={savingPassword} />
       </Section>
 
       {/* Payment details Section */}
       <Section title="Payment details" onSubmit={handlePaymentSave}>
         <label className="block text-sm font-medium mb-1">Select country</label>
-        <select className="w-full p-2 border rounded-lg mb-4">
-          <option>United States</option>
+        <select
+          value={country}
+          onChange={(e) => setCountry(e.target.value)}
+          className="w-full p-2 border rounded-lg mb-4"
+        >
+          <option value="Mongolia">Mongolia</option>
+          <option value="United States">United States</option>
         </select>
         <div className="grid grid-cols-2 gap-4">
           <InputField
             label="First name"
             placeholder="Jake"
-            value=""
-            onChange={() => {}}
+            value={firstName}
+            onChange={(e: any) => setFirstName(e.target.value)}
           />
           <InputField
             label="Last name"
             placeholder="Mulligan"
-            value=""
-            onChange={() => {}}
+            value={lastName}
+            onChange={(e: any) => setLastName(e.target.value)}
           />
         </div>
         <InputField
           label="Enter card number"
           placeholder="XXXX-XXXX-XXXX-XXXX"
-          value=""
-          onChange={() => {}}
+          value={cardNumber}
+          onChange={(e: any) => setCardNumber(e.target.value)}
         />
         <div className="grid grid-cols-3 gap-4">
-          <InputField
-            label="Expires"
-            placeholder="August"
-            value=""
-            onChange={() => {}}
-          />
+          <div>
+            <label className="block text-sm font-medium mb-1">Expires</label>
+            <select
+              value={expiresMonth}
+              onChange={(e) => setExpiresMonth(e.target.value)}
+              className="w-full p-2 border rounded-lg"
+            >
+              <option value="">Month</option>
+              {MONTHS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
           <InputField
             label="Year"
             placeholder="2028"
-            value=""
-            onChange={() => {}}
+            value={expiresYear}
+            onChange={(e: any) => setExpiresYear(e.target.value)}
           />
           <InputField
             label="CVC"
             placeholder="590"
-            value=""
-            onChange={() => {}}
+            value={cvc}
+            onChange={(e: any) => setCvc(e.target.value)}
           />
         </div>
-        <SaveButton />
+        <SaveButton loading={savingPayment} />
       </Section>
 
       {/* Success page Section */}
@@ -246,10 +391,10 @@ function AccountSettingsSection({
         <TextAreaField
           label="Confirmation message"
           placeholder="Thank you for supporting me!..."
-          value=""
-          onChange={() => {}}
+          value={successMessage}
+          onChange={(e: any) => setSuccessMessage(e.target.value)}
         />
-        <SaveButton />
+        <SaveButton loading={savingSuccess} />
       </Section>
     </div>
   );
@@ -294,13 +439,14 @@ function TextAreaField({ label, ...props }: any) {
   );
 }
 
-function SaveButton() {
+function SaveButton({ loading = false }: { loading?: boolean }) {
   return (
     <button
       type="submit"
-      className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition"
+      disabled={loading}
+      className="w-full bg-black text-white py-2 rounded-lg font-semibold hover:bg-gray-800 transition disabled:opacity-50"
     >
-      Save changes
+      {loading ? "Saving..." : "Save changes"}
     </button>
   );
 }

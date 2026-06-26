@@ -49,6 +49,7 @@ export async function GET() {
             country: true,
             firstName: true,
             lastName: true,
+            cardNumber: true,
             expiryDate: true,
           },
         },
