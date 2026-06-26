@@ -2,13 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  AuthShell,
+  AuthCard,
+  AuthCardHeader,
+  AuthField,
+  AuthSubmit,
+} from "../components/AuthShell";
 
 export default function SigninPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,14 +27,9 @@ export default function SigninPage() {
 
       const res = await fetch("/api/auth/signin", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -40,7 +41,7 @@ export default function SigninPage() {
 
       router.push("/");
       router.refresh();
-    } catch (err) {
+    } catch {
       setError("Server error");
     } finally {
       setLoading(false);
@@ -48,42 +49,38 @@ export default function SigninPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <form
-        onSubmit={handleSignin}
-        className="w-full max-w-sm space-y-4 p-8 border rounded-xl shadow bg-white"
-      >
-        <h1 className="text-xl font-bold">Нэвтрэх</h1>
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-          required
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border rounded"
-          required
-          minLength={8}
-        />
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-2 bg-black text-white rounded disabled:opacity-50"
+    <AuthShell topRight={{ label: "Sign up", href: "/signup" }}>
+      <AuthCard>
+        <AuthCardHeader title="Welcome back" />
+        <form
+          onSubmit={handleSignin}
+          className="flex flex-col gap-3 px-6 pb-2"
         >
-          {loading ? "Түр хүлээнэ үү..." : "Нэвтрэх"}
-        </button>
-      </form>
-    </div>
+          <AuthField
+            label="Email"
+            type="email"
+            placeholder="Enter email here"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <AuthField
+            label="Password"
+            type="password"
+            placeholder="Enter password here"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+          />
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <div className="pb-4 pt-3">
+            <AuthSubmit disabled={loading || !email || !password}>
+              {loading ? "Please wait..." : "Continue"}
+            </AuthSubmit>
+          </div>
+        </form>
+      </AuthCard>
+    </AuthShell>
   );
 }
