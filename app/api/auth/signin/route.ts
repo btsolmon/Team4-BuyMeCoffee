@@ -15,10 +15,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log(email, password, "USER PASS AND MAIL");
+
     const user = await prisma.user.findUnique({
       where: { email },
       include: { profile: true },
     });
+    console.log(user, "USER FROM PRISMA");
+
     if (!user) {
       return NextResponse.json(
         { message: "Email эсвэл нууц үг буруу" },
@@ -33,11 +37,16 @@ export async function POST(req: NextRequest) {
         { status: 401 },
       );
     }
+    console.log(valid, "IS VALID");
 
     const tokens = signTokens(user.id);
+    console.log(tokens, "TOKEN");
+
     const { password: _, ...safeUser } = user;
 
     const response = NextResponse.json({ user: safeUser });
+    console.log(response, "RESPONSE FROM NEXTRESP");
+
     setAuthCookies(response, tokens.accessToken, tokens.refreshToken);
     return response;
   } catch (e) {
