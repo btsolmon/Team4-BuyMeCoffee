@@ -4,13 +4,12 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider      = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
 }
 
 model Donation {
@@ -71,4 +70,13 @@ model BankCard {
 
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Float
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  paymentType String?
 }
