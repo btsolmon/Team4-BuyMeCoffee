@@ -19,7 +19,12 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { profile: true },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        profile: true,
+      },
     });
     console.log(user, "USER FROM PRISMA");
 
@@ -29,7 +34,12 @@ export async function POST(req: NextRequest) {
         { status: 401 },
       );
     }
-
+    if (!user?.password) {
+      return NextResponse.json(
+        { message: "User data corrupted" },
+        { status: 500 },
+      );
+    }
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return NextResponse.json(
@@ -40,6 +50,13 @@ export async function POST(req: NextRequest) {
     console.log(valid, "IS VALID");
 
     const tokens = signTokens(user.id);
+
+    if (!tokens?.accessToken || !tokens?.refreshToken) {
+      return NextResponse.json(
+        { message: "Token generation failed" },
+        { status: 500 },
+      );
+    }
     console.log(tokens, "TOKEN");
 
     const { password: _, ...safeUser } = user;
@@ -50,6 +67,8 @@ export async function POST(req: NextRequest) {
     setAuthCookies(response, tokens.accessToken, tokens.refreshToken);
     return response;
   } catch (e) {
+    console.error("LOGIN ERROR:", e);
+
     return NextResponse.json({ message: "Серверийн алдаа" }, { status: 500 });
   }
 }

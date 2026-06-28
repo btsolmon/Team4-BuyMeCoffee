@@ -19,6 +19,10 @@ export const Supporter = ({
   userId: string;
 }) => {
   const [supporters, setSupporters] = useState<SupporterDonation[]>([]);
+  const [visibleCount, setVisibleCount] = useState(5);
+
+  const visibleSupporters = supporters.slice(0, visibleCount);
+  const hasMore = supporters.length > visibleCount;
 
   useEffect(() => {
     fetch(`/api/donation/received/${userId}`)
@@ -47,16 +51,18 @@ export const Supporter = ({
       .catch(() => setSupporters([]));
   }, [userId]);
 
-  const hasSupporters = supporters.length > 0;
-
   return (
     <div className="p-6 bg-white rounded-xl border border-[#E4E4E7] space-y-6 ">
       <h2 className="text-[18px] font-bold text-gray-900">Recent Supporters</h2>
 
-      {hasSupporters ? (
+      {visibleSupporters ? (
         <div className="space-y-6">
-          <div className="space-y-6">
-            {supporters.map((donation) => (
+          <div
+            className={`space-y-6 ${
+              supporters.length > 8 ? "max-h-[420px] overflow-y-auto pr-2" : ""
+            }`}
+          >
+            {visibleSupporters.map((donation) => (
               <div key={donation.id} className="flex gap-4 items-start">
                 <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
                   {donation.avatarImage ? (
@@ -90,10 +96,15 @@ export const Supporter = ({
             ))}
           </div>
 
-          <button className="w-full py-2.5 border border-[#E4E4E7] rounded-xl text-sm font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-1.5 transition">
-            See more
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          </button>
+          {hasMore && (
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 5)}
+              className="w-full py-2.5 border border-[#E4E4E7] rounded-xl text-sm font-medium text-gray-900 hover:bg-gray-50 flex items-center justify-center gap-1.5 transition"
+            >
+              See more
+              <ChevronDown className="w-4 h-4 text-gray-500" />
+            </button>
+          )}
         </div>
       ) : (
         <div className="p-12 rounded-xl border border-[#E4E4E7] flex flex-col items-center justify-center text-center">

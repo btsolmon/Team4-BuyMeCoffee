@@ -14,6 +14,7 @@ export default async function PublicProfilePage({
   params: Promise<{ username: string }>;
 }) {
   const { username } = await params;
+
   const [user, currentUser] = await Promise.all([
     prisma.user.findUnique({
       where: { username },
@@ -22,6 +23,12 @@ export default async function PublicProfilePage({
     getCurrentUser(),
   ]);
 
+  const currentUserProfile = currentUser
+    ? await prisma.user.findUnique({
+        where: { id: currentUser.id },
+        include: { profile: true },
+      })
+    : null;
   if (!user) notFound();
 
   const { profile } = user;
@@ -52,7 +59,12 @@ export default async function PublicProfilePage({
             </div>
 
             <div className="w-1/2">
-              <DonationCard creatorName={profile.name} recipientId={user.id} />
+              <DonationCard
+                UserSocialUrl={currentUser?.profile?.socialMediaURL ?? ""}
+                creatorName={profile.name}
+                recipientId={user.id}
+                isOwner={false}
+              />
             </div>
           </div>
         </div>

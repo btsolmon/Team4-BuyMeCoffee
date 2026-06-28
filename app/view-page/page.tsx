@@ -31,7 +31,11 @@ export default async function CreatorPreviewPage() {
               <Supporter name={profile.name} userId={user.id} />
             </div>
             <div className="w-1/2">
-              <DonationCard creatorName={profile.name} recipientId={user.id} />
+              <DonationCard
+                creatorName={profile.name}
+                recipientId={user.id}
+                isOwner={true}
+              />
             </div>
           </div>
         </div>
