@@ -8,18 +8,22 @@ import {
 const RESET_EXPIRY_MS = 60 * 60 * 1000;
 
 function getRequestOrigin(req: NextRequest) {
+  const forwardedHost = req.headers.get("x-forwarded-host");
+  const host = forwardedHost ?? req.headers.get("host");
+
+  // If the request came through an active tunnel or production host, use it directly.
+  if (host && !host.startsWith("localhost") && !host.startsWith("127.0.0.1")) {
+    const proto = req.headers.get("x-forwarded-proto") ?? "https";
+    return `${proto}://${host}`.replace(/\/+$/, "");
+  }
+
+  // On localhost, fall back to configured public URL (e.g. current devtunnel).
   const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (configured) return configured.replace(/\/+$/, "");
 
-  const forwardedHost = req.headers.get("x-forwarded-host");
-  const host = forwardedHost ?? req.headers.get("host");
   if (host) {
-    const proto =
-      req.headers.get("x-forwarded-proto") ??
-      (host.startsWith("localhost") || host.startsWith("127.0.0.1")
-        ? "http"
-        : "https");
-    return `${proto}://${host}`;
+    const proto = req.headers.get("x-forwarded-proto") ?? "http";
+    return `${proto}://${host}`.replace(/\/+$/, "");
   }
 
   return req.nextUrl.origin.replace(/\/+$/, "");
@@ -53,6 +57,8 @@ export async function POST(req: NextRequest) {
 
       const origin = getRequestOrigin(req);
       const resetUrl = `${origin}/reset-password?token=${token}`;
+
+      console.log("[password-reset] Link:", resetUrl);
 
       await sendPasswordResetEmail(user.email, resetUrl);
     }

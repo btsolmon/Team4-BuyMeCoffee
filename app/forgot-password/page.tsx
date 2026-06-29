@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
           <div className="flex flex-col gap-4 p-6">
             <AuthCardHeader
               title="Check your email"
-              description={`If an account exists for ${email}, we sent a password reset link. The link expires in 1 hour.`}
+              description={`We have sent a password reset link to ${email}. The link expires in 1 hour.`}
             />
             <Link
               href="/login"
