@@ -81,4 +81,8 @@ model Transaction {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   paymentType String?
+  recipientId String?
+  donorId     String?
+  specialMessage String?
+   socialURLOrBuyMeACoffee String?
 }

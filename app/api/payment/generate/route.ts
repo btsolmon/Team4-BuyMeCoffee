@@ -1,23 +1,26 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import QRCode from "qrcode";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    console.log("Generate request body:", body);
-
-    const { amount } = body;
+    const currentUser = await getCurrentUser();
+    const { amount, recipientId, specialMessage, socialURLOrBuyMeACoffee } =
+      await request.json();
 
     const transaction = await prisma.transaction.create({
-      data: { amount: Number(amount), status: "PENDING" },
+      data: {
+        amount: Number(amount),
+        status: "PENDING",
+        recipientId: recipientId ?? null,
+        donorId: currentUser?.id ?? null,
+        specialMessage: specialMessage ?? null,
+        socialURLOrBuyMeACoffee: socialURLOrBuyMeACoffee ?? null,
+      },
     });
 
-    console.log("Transaction created:", transaction.id);
-
     const mockPaymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${transaction.id}`;
-    console.log("Payment URL:", mockPaymentUrl);
-
     const qrCodeUrl = await QRCode.toDataURL(mockPaymentUrl);
 
     return NextResponse.json({
