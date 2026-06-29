@@ -26,11 +26,15 @@ export default function DonationCard({
     e.preventDefault();
     setLoading(true);
     setError("");
-
     const paymentRes = await fetch("/api/payment/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount }),
+      body: JSON.stringify({
+        amount,
+        recipientId,
+        specialMessage: message || null,
+        socialURLOrBuyMeACoffee: socialUrl || null,
+      }),
     });
 
     const text = await paymentRes.text();

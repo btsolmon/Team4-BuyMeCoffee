@@ -29,7 +29,6 @@ export async function GET(
 
     return NextResponse.json(donations);
   } catch (error) {
-    // Log the error for debugging
     console.error("Failed to fetch donations:", error);
 
     return NextResponse.json(

@@ -42,7 +42,7 @@ export const Cover = ({
 
   return (
     <div
-      className="group relative w-screen h-80 flex items-center justify-center border-b border-gray-200 transition-colors left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
+      className="group relative w-screen h-110 flex items-center justify-center border-b border-gray-200 transition-colors left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]"
       style={{ backgroundColor: image ? undefined : "#F4F4F5" }}
     >
       {loading ? (
