@@ -17,7 +17,11 @@ export function CreatorCard({ creator }: { creator: Creator }) {
         </div>
 
         <Link
-          href={creator.username ? `/${creator.username}` : "#"}
+          href={
+            creator.username
+              ? `/${encodeURIComponent(creator.username)}`
+              : "#"
+          }
           className="flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 transition-colors"
         >
           View profile

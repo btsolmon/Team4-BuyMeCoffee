@@ -42,7 +42,7 @@ export default function Page() {
 
   useEffect(() => {
     if (currentUser) {
-      setPageUrl(`${window.location.host}/${currentUser.username}`);
+      setPageUrl(`${window.location.host}/${encodeURIComponent(currentUser.username)}`);
     }
   }, [currentUser]);
 
@@ -95,7 +95,7 @@ export default function Page() {
   function handleShare() {
     if (!currentUser) return;
     navigator.clipboard.writeText(
-      `${window.location.origin}/${currentUser.username}`,
+      `${window.location.origin}/${encodeURIComponent(currentUser.username)}`,
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

@@ -6,7 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ username: string }> },
 ) {
   try {
-    const { username } = await params;
+    const { username: rawUsername } = await params;
+    const username = decodeURIComponent(rawUsername);
 
     if (!username) {
       return NextResponse.json({ error: "Username required" }, { status: 400 });

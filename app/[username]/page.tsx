@@ -13,7 +13,8 @@ export default async function PublicProfilePage({
 }: {
   params: Promise<{ username: string }>;
 }) {
-  const { username } = await params;
+  const { username: rawUsername } = await params;
+  const username = decodeURIComponent(rawUsername);
 
   if (!username) notFound();
 
