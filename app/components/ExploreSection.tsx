@@ -33,7 +33,6 @@ export default function ExploreSection({
         />
       </div>
 
-      {/* Нөхцөлт байдал: filteredCreators хоосон бол зурагт үзүүлсэн загварыг харуулна */}
       {filteredCreators.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">

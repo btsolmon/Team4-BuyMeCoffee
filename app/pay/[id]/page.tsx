@@ -16,7 +16,10 @@ export default function PayPage({
 
     const completePayment = async () => {
       try {
-        const res = await fetch("/api/payment/webhook", {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+
+        const res = await fetch(`${baseUrl}/api/payment/webhook`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ transactionId: id, paymentType: "QPAY" }),

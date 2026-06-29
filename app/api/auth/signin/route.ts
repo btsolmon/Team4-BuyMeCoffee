@@ -29,10 +29,7 @@ export async function POST(req: NextRequest) {
     console.log(user, "USER FROM PRISMA");
 
     if (!user) {
-      return NextResponse.json(
-        { message: "Email эсвэл нууц үг буруу" },
-        { status: 401 },
-      );
+      return NextResponse.json({ message: "Бүртгүүлнэ үү!" }, { status: 401 });
     }
     if (!user?.password) {
       return NextResponse.json(

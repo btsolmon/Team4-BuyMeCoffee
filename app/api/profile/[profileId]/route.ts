@@ -16,10 +16,8 @@ export async function PATCH(
   { params }: { params: Promise<{ profileId: string }> },
 ) {
   try {
-    // 1. Await the params promise first
     const { profileId } = await params;
 
-    // 2. Auth check
     const token = req.cookies.get("access_token")?.value;
     if (!token)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -28,7 +26,6 @@ export async function PATCH(
     if (!payload || !payload.sub)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // 3. Verify ownership
     const owner = await prisma.user.findFirst({
       where: {
         id: payload.sub as string,
@@ -39,7 +36,6 @@ export async function PATCH(
     if (!owner)
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    // 4. Parse body and update
     const body: UpdateProfileData = await req.json();
 
     const updated = await prisma.profile.update({
