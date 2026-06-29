@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   AuthShell,
   AuthCard,
@@ -73,6 +74,14 @@ export default function SigninPage() {
             required
             minLength={8}
           />
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-[#18181b] underline-offset-2 hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="pb-4 pt-3">
             <AuthSubmit disabled={loading || !email || !password}>

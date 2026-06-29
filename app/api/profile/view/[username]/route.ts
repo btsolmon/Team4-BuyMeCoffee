@@ -7,6 +7,11 @@ export async function GET(
 ) {
   try {
     const { username } = await params;
+
+    if (!username) {
+      return NextResponse.json({ error: "Username required" }, { status: 400 });
+    }
+
     const user = await prisma.user.findUnique({
       where: { username },
       select: {

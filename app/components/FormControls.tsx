@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export function FormSection({
   title,
@@ -24,11 +27,32 @@ type InputFieldProps = {
   label: string;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
-export function InputField({ label, ...props }: InputFieldProps) {
+export function InputField({ label, type, ...props }: InputFieldProps) {
+  const [show, setShow] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword ? (show ? "text" : "password") : type;
+
   return (
     <div>
       <label className="block text-sm font-medium mb-1">{label}</label>
-      <input {...props} className="w-full p-2 border rounded-lg" />
+      <div className="relative">
+        <input
+          {...props}
+          type={inputType}
+          className={`w-full p-2 border rounded-lg ${isPassword ? "pr-10" : ""}`}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShow((v) => !v)}
+            tabIndex={-1}
+            aria-label={show ? "Hide password" : "Show password"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-700"
+          >
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

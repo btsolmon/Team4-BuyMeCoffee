@@ -1,4 +1,7 @@
-import { CheckCircle2, Coffee, XCircle } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { CheckCircle2, Coffee, Eye, EyeOff, XCircle } from "lucide-react";
 import Link from "next/link";
 
 export function AuthShell({
@@ -83,6 +86,7 @@ export function AuthField({
   hint,
   hintType,
   invalid,
+  type,
   ...props
 }: {
   label: string;
@@ -90,17 +94,37 @@ export function AuthField({
   hintType?: "success" | "error";
   invalid?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const [show, setShow] = useState(false);
+  const isPassword = type === "password";
+  const inputType = isPassword ? (show ? "text" : "password") : type;
+
   return (
     <div className="flex w-full flex-col gap-2">
       <label className="text-sm font-medium text-[#09090b]">{label}</label>
-      <input
-        {...props}
-        className={`h-10 w-full rounded-md border bg-white px-3 py-2 text-sm text-[#09090b] outline-none placeholder:text-[#71717a] focus:ring-2 ${
-          invalid
-            ? "border-red-500 focus:ring-red-500/20"
-            : "border-[#e4e4e7] focus:ring-[#18181b]/10"
-        }`}
-      />
+      <div className="relative">
+        <input
+          {...props}
+          type={inputType}
+          className={`h-10 w-full rounded-md border bg-white px-3 py-2 text-sm text-[#09090b] outline-none placeholder:text-[#71717a] focus:ring-2 ${
+            isPassword ? "pr-10" : ""
+          } ${
+            invalid
+              ? "border-red-500 focus:ring-red-500/20"
+              : "border-[#e4e4e7] focus:ring-[#18181b]/10"
+          }`}
+        />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShow((v) => !v)}
+            tabIndex={-1}
+            aria-label={show ? "Hide password" : "Show password"}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#71717a] transition-colors hover:text-[#09090b]"
+          >
+            {show ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        )}
+      </div>
       {hint && (
         <div
           className={`flex items-center gap-1.5 text-xs ${

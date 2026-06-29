@@ -4,27 +4,16 @@ import DonationCard from "./DonationCard";
 import ProfileInfo from "./ProfileInfo";
 import { Supporter } from "./Supporter";
 import { getCurrentUser } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function CreatorPreviewPage({
-  params,
-}: {
-  params: Promise<{ username: string }>;
-}) {
-  const { username } = await params;
-  const [user, currentUser] = await Promise.all([
-    prisma.user.findUnique({
-      where: { username },
-      include: { profile: true },
-    }),
-    getCurrentUser(),
-  ]);
+export default async function CreatorPreviewPage() {
+  const currentUser = await getCurrentUser();
 
-  if (!user) redirect("/login");
+  if (!currentUser) redirect("/login");
 
-  const { profile } = user;
+  const { profile } = currentUser;
+
   return (
     <div className="w-full min-h-screen bg-white pb-20">
       <Cover id={profile.id} cover={profile.backgroundImage} isOwner={true} />
@@ -37,17 +26,17 @@ export default async function CreatorPreviewPage({
                 currentAvatar={profile.avatarImage ?? null}
                 currentName={profile.name}
                 currentAbout={profile.about ?? null}
-                username={user.username}
+                username={currentUser.username}
                 currentSocialMediaURL={profile.socialMediaURL}
                 isOwner={true}
               />
-              <Supporter name={profile.name} userId={user.id} />
+              <Supporter name={profile.name} userId={currentUser.id} />
             </div>
             <div className="w-1/2">
               <DonationCard
-                UserSocialUrl={currentUser?.profile?.socialMediaURL ?? ""}
+                UserSocialUrl={currentUser.profile?.socialMediaURL ?? ""}
                 creatorName={profile.name}
-                recipientId={user.id}
+                recipientId={currentUser.id}
                 isOwner={true}
               />
             </div>

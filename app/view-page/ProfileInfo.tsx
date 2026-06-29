@@ -55,10 +55,18 @@ export default function ProfileInfo({
       </div>
       <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
         <h3 className="text-sm font-bold text-gray-900">Social media URL</h3>
-        <p className="mt-2 text-sm text-gray-600">
-          {process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000"}/
-          {username}
-        </p>
+        {currentSocialMediaURL ? (
+          <a
+            href={currentSocialMediaURL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 block text-sm text-blue-600 hover:underline break-all"
+          >
+            {currentSocialMediaURL}
+          </a>
+        ) : (
+          <p className="mt-2 text-sm text-gray-400">No social media URL yet.</p>
+        )}
       </div>
     </div>
   );

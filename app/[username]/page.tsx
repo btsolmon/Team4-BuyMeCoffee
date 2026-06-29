@@ -15,6 +15,8 @@ export default async function PublicProfilePage({
 }) {
   const { username } = await params;
 
+  if (!username) notFound();
+
   const [user, currentUser] = await Promise.all([
     prisma.user.findUnique({
       where: { username },
