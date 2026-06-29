@@ -8,11 +8,10 @@ import { getCurrentUser } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 export default async function CreatorPreviewPage() {
-  const currentUser = await getCurrentUser();
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
-  if (!currentUser) redirect("/login");
-
-  const { profile } = currentUser;
+  const { profile } = user;
 
   return (
     <div className="w-full min-h-screen bg-white pb-20">
@@ -26,17 +25,17 @@ export default async function CreatorPreviewPage() {
                 currentAvatar={profile.avatarImage ?? null}
                 currentName={profile.name}
                 currentAbout={profile.about ?? null}
-                username={currentUser.username}
+                username={user.username}
                 currentSocialMediaURL={profile.socialMediaURL}
                 isOwner={true}
               />
-              <Supporter name={profile.name} userId={currentUser.id} />
+              <Supporter name={profile.name} userId={user.id} />
             </div>
             <div className="w-1/2">
               <DonationCard
-                UserSocialUrl={currentUser.profile?.socialMediaURL ?? ""}
+                UserSocialUrl={profile.socialMediaURL ?? ""}
                 creatorName={profile.name}
-                recipientId={currentUser.id}
+                recipientId={user.id}
                 isOwner={true}
               />
             </div>

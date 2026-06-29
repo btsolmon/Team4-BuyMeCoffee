@@ -32,6 +32,8 @@ model User {
   email     String   @unique
   password  String
   username  String   @unique
+  passwordResetToken   String?   @unique
+  passwordResetExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -73,7 +75,7 @@ model BankCard {
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
+  id          String   @id @default(nanoid())
   amount      Float
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
