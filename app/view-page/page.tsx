@@ -4,11 +4,24 @@ import DonationCard from "./DonationCard";
 import ProfileInfo from "./ProfileInfo";
 import { Supporter } from "./Supporter";
 import { getCurrentUser } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function CreatorPreviewPage() {
-  const user = await getCurrentUser();
+export default async function CreatorPreviewPage({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
+  const { username } = await params;
+  const [user, currentUser] = await Promise.all([
+    prisma.user.findUnique({
+      where: { username },
+      include: { profile: true },
+    }),
+    getCurrentUser(),
+  ]);
+
   if (!user) redirect("/login");
 
   const { profile } = user;
@@ -32,6 +45,7 @@ export default async function CreatorPreviewPage() {
             </div>
             <div className="w-1/2">
               <DonationCard
+                UserSocialUrl={currentUser?.profile?.socialMediaURL ?? ""}
                 creatorName={profile.name}
                 recipientId={user.id}
                 isOwner={true}
