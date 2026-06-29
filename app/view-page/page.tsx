@@ -28,6 +28,7 @@ export default async function CreatorPreviewPage() {
                 username={user.username}
                 currentSocialMediaURL={profile?.socialMediaURL}
                 isOwner={true}
+                userId={user.id}
               />
               <Supporter name={profile.name} userId={user.id} />
             </div>

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Camera } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 export function DialogDemo({
@@ -22,12 +23,14 @@ export function DialogDemo({
   currentName,
   currentAbout,
   currentSocialMediaURL,
+  userId,
 }: {
   profileId: string;
   currentAvatar?: string;
   currentName: string;
   currentAbout?: string;
   currentSocialMediaURL?: string;
+  userId: string;
 }) {
   const [avatar, setAvatar] = useState(currentAvatar);
   const [loading, setLoading] = useState(false);
@@ -37,23 +40,31 @@ export function DialogDemo({
   const [socialMediaURL, setSocialMediaURL] = useState(
     currentSocialMediaURL ?? "",
   );
+  const router = useRouter();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await fetch(`/api/profile/${profileId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          about,
-          socialMediaURL,
-          avatarImage: avatar,
+      await Promise.all([
+        fetch(`/api/profile/${profileId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            about,
+            socialMediaURL,
+            avatarImage: avatar,
+          }),
         }),
-      });
-      window.location.reload();
-    } catch (err) {
-      console.error(err);
+        await fetch(`/api/auth/update/${userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: name, name }),
+        }),
+      ]);
+      router.refresh();
+    } catch {
+      console.error("Failed to save");
     } finally {
       setLoading(false);
     }
@@ -66,7 +77,7 @@ export function DialogDemo({
       const form = new FormData();
       form.append("file", file);
       form.append("profileId", profileId);
-      form.append("field", "avatarImage"); // ← энэ дутуу байсан
+      form.append("field", "avatarImage");
       const res = await fetch("/api/upload", {
         method: "PUT",
         body: form,
