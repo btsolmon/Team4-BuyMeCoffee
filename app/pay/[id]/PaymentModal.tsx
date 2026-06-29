@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Props = {
   isOpen: boolean;
@@ -23,10 +23,9 @@ export default function PaymentModal({
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
+  useEffect(() => {
+    if (!isOpen || !transactionId || tab !== "qpay") return;
 
-  // QPay polling
-  useState(() => {
-    if (!isOpen || !transactionId) return;
     const interval = setInterval(async () => {
       try {
         const res = await fetch(
@@ -38,12 +37,11 @@ export default function PaymentModal({
           setPaid(true);
           clearInterval(interval);
         }
-      } catch {
-        // silent
-      }
+      } catch {}
     }, 2000);
+
     return () => clearInterval(interval);
-  });
+  }, [isOpen, transactionId, tab]);
 
   async function handleCardPay() {
     if (!name || !cardNumber || !expiry || !cvc) {
@@ -122,7 +120,6 @@ export default function PaymentModal({
           ✕
         </button>
 
-        {/* Tabs */}
         <div className="flex bg-gray-100 rounded-xl p-1 mb-7">
           {(["card", "qpay"] as const).map((t) => (
             <button
@@ -139,7 +136,6 @@ export default function PaymentModal({
           ))}
         </div>
 
-        {/* Card tab */}
         {tab === "card" && (
           <div className="flex flex-col gap-4">
             <div>
@@ -203,7 +199,6 @@ export default function PaymentModal({
           </div>
         )}
 
-        {/* QPay tab */}
         {tab === "qpay" && (
           <div className="flex flex-col items-center gap-5">
             <div className="text-center">
