@@ -26,14 +26,14 @@ export default async function CreatorPreviewPage() {
                 currentName={profile.name}
                 currentAbout={profile.about ?? null}
                 username={user.username}
-                currentSocialMediaURL={profile.socialMediaURL}
+                currentSocialMediaURL={profile?.socialMediaURL}
                 isOwner={true}
               />
               <Supporter name={profile.name} userId={user.id} />
             </div>
             <div className="w-1/2">
               <DonationCard
-                UserSocialUrl={profile.socialMediaURL ?? ""}
+                UserSocialUrl={profile?.socialMediaURL ?? ""}
                 creatorName={profile.name}
                 recipientId={user.id}
                 isOwner={true}
