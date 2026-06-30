@@ -9,7 +9,6 @@ export async function GET(
     const { userId } = await params;
     const days = req.nextUrl.searchParams.get("days");
 
-    // Calculate the 'since' date if 'days' is provided and valid
     const since =
       days && !isNaN(Number(days))
         ? new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000)

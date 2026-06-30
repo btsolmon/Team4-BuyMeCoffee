@@ -44,6 +44,7 @@ export default async function PublicProfilePage({
           <div className="relative z-10 -mt-12 flex gap-6 items-start">
             <div className="flex flex-col gap-4 w-1/2">
               <ProfileInfo
+                userId={user.id}
                 profileId={profile.id}
                 currentAvatar={profile.avatarImage ?? null}
                 currentName={profile.name}

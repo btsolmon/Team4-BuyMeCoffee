@@ -113,14 +113,14 @@ export default function PaymentModal({
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl p-8 w-[400px] relative shadow-2xl"
       >
-<div className="flex justify-end w-full pb-6">
-<button
-          onClick={onClose}
-          className="w-8 h-8 rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 transition flex items-center justify-center text-sm"
-        >
-          ✕
-        </button>
-</div>
+        <div className="flex justify-end w-full pb-6">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-gray-100 text-gray-400 hover:bg-gray-200 transition flex items-center justify-center text-sm"
+          >
+            ✕
+          </button>
+        </div>
 
         <div className="flex bg-gray-100 rounded-xl p-1 mb-7">
           {(["card", "qpay"] as const).map((t) => (

@@ -10,7 +10,6 @@ export async function PATCH(
   try {
     const { useId: userId } = await params;
 
-    // header биш cookie-ооc унших
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
     if (!token) {
@@ -42,9 +41,8 @@ export async function PATCH(
         { status: 404 },
       );
     }
-    console.log("Received username:", username); // ← юу ирж байна?
+    console.log("Received username:", username); 
     console.log("userId:", userId);
-    // username болон profile хоёуланг нэгэн зэрэг update
     const [updatedUser, profile] = await Promise.all([
       username
         ? prisma.user.update({
