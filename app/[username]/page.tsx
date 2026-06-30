@@ -52,7 +52,6 @@ export default async function PublicProfilePage({
                 username={user.username}
                 currentSocialMediaURL={profile.socialMediaURL}
                 isOwner={isOwner}
-                userId={user.id}
               />
               <Supporter name={profile.name} userId={user.id} />
             </div>
