@@ -26,12 +26,6 @@ export default async function PublicProfilePage({
     getCurrentUser(),
   ]);
 
-  const currentUserProfile = currentUser
-    ? await prisma.user.findUnique({
-        where: { id: currentUser.id },
-        include: { profile: true },
-      })
-    : null;
   if (!user) notFound();
 
   const { profile } = user;
@@ -57,6 +51,7 @@ export default async function PublicProfilePage({
                 username={user.username}
                 currentSocialMediaURL={profile.socialMediaURL}
                 isOwner={isOwner}
+                userId={user.id}
               />
               <Supporter name={profile.name} userId={user.id} />
             </div>
