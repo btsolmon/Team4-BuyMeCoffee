@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyAccessToken } from '@/lib/jwt';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { verifyToken } from "@/lib/jwt";
+import { cookies } from "next/headers";
 
 export async function PATCH(
   req: NextRequest,
@@ -8,39 +9,64 @@ export async function PATCH(
 ) {
   try {
     const { useId: userId } = await params;
-    const token = req.headers.get("authorization")?.split(" ")[1];
+
+    // header биш cookie-ооc унших
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
     if (!token) {
       return NextResponse.json({ message: "Token олдсонгүй" }, { status: 401 });
     }
 
-    const payload = verifyAccessToken(token);
-    if (payload.sub !== userId) {
-      return NextResponse.json({ message: 'Эрх хүрэхгүй байна' }, { status: 403 });
+    const payload = await verifyToken(token);
+    if (!payload || payload.sub !== userId) {
+      return NextResponse.json(
+        { message: "Эрх хүрэхгүй байна" },
+        { status: 403 },
+      );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const {
+      username,
+      name,
+      about,
+      socialMediaURL,
+      avatarImage,
+      backgroundImage,
+      successMessage,
+    } = await req.json();
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      return NextResponse.json({ message: 'Хэрэглэгч олдсонгүй' }, { status: 404 });
+      return NextResponse.json(
+        { message: "Хэрэглэгч олдсонгүй" },
+        { status: 404 },
+      );
     }
+    console.log("Received username:", username); // ← юу ирж байна?
+    console.log("userId:", userId);
+    // username болон profile хоёуланг нэгэн зэрэг update
+    const [updatedUser, profile] = await Promise.all([
+      username
+        ? prisma.user.update({
+            where: { id: userId },
+            data: { username },
+          })
+        : Promise.resolve(user),
+      prisma.profile.update({
+        where: { id: user.profileId },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(about !== undefined && { about }),
+          ...(socialMediaURL !== undefined && { socialMediaURL }),
+          ...(avatarImage !== undefined && { avatarImage }),
+          ...(backgroundImage !== undefined && { backgroundImage }),
+          ...(successMessage !== undefined && { successMessage }),
+        },
+      }),
+    ]);
 
-    const { name, about, socialMediaURL, avatarImage, backgroundImage, successMessage } = await req.json();
-
-    const profile = await prisma.profile.update({
-      where: { id: user.profileId },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(about !== undefined && { about }),
-        ...(socialMediaURL !== undefined && { socialMediaURL }),
-        ...(avatarImage !== undefined && { avatarImage }),
-        ...(backgroundImage !== undefined && { backgroundImage }),
-        ...(successMessage !== undefined && { successMessage }),
-      },
-    });
-
-    return NextResponse.json({ profile });
+    return NextResponse.json({ user: updatedUser, profile });
   } catch (e) {
-    return NextResponse.json({ message: 'Серверийн алдаа' }, { status: 500 });
+    return NextResponse.json({ message: "Серверийн алдаа" }, { status: 500 });
   }
 }
