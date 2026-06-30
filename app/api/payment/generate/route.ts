@@ -20,7 +20,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const mockPaymentUrl = `https://c3bjc0l1-3000.jpe1.devtunnels.ms/pay/${transaction.id}`;
+    const host = request.headers.get("host");
+    const protocol = host?.includes("localhost") ? "http" : "https";
+    const mockPaymentUrl = `${protocol}://${host}/pay/${transaction.id}`;
     const qrCodeUrl = await QRCode.toDataURL(mockPaymentUrl);
 
     return NextResponse.json({
