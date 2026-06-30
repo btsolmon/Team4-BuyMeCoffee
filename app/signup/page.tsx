@@ -9,9 +9,15 @@ import {
   AuthCardHeader,
   AuthField,
   AuthSubmit,
+  PasswordChecklist,
 } from "../components/AuthShell";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  isValidEmail,
+  isStrongPassword,
+  isValidUsername,
+  checkPassword,
+  usernameError,
+} from "@/lib/validation";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -27,14 +33,18 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Debounced username availability check
+  const usernameFormatError = usernameError(username);
+  const usernameFormatValid = isValidUsername(username);
+
+  // Debounced username availability check — зөвхөн формат зөв бол DB шалгана.
   useEffect(() => {
     const value = username.trim();
-    if (!value) {
+    if (!value || !usernameFormatValid) {
       setAvailable(null);
       return;
     }
@@ -55,21 +65,24 @@ export default function SignupPage() {
     }, 400);
 
     return () => clearTimeout(t);
-  }, [username]);
+  }, [username, usernameFormatValid]);
 
-  const emailValid = EMAIL_RE.test(email);
+  const emailValid = isValidEmail(email);
+  const passwordChecks = checkPassword(password);
+  const passwordValid = isStrongPassword(password);
 
   function handleUsernameContinue(e: React.FormEvent) {
     e.preventDefault();
-    if (available) setStep(2);
+    if (available && usernameFormatValid) setStep(2);
   }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
-    if (!emailValid) {
+    if (!emailValid || !passwordValid) {
       setEmailTouched(true);
+      setPasswordTouched(true);
       return;
     }
 
@@ -117,19 +130,27 @@ export default function SignupPage() {
                 placeholder="Enter username here"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                invalid={available === false}
-                hint={
-                  checking || available === null
-                    ? undefined
-                    : available
-                      ? "Username available"
-                      : "The username is already taken"
+                invalid={
+                  Boolean(usernameFormatError) || available === false
                 }
-                hintType={available ? "success" : "error"}
+                hint={
+                  usernameFormatError
+                    ? usernameFormatError
+                    : checking || available === null
+                      ? undefined
+                      : available
+                        ? "Username available"
+                        : "The username is already taken"
+                }
+                hintType={
+                  !usernameFormatError && available ? "success" : "error"
+                }
                 required
               />
               <div className="pb-4 pt-3">
-                <AuthSubmit disabled={!available || checking}>
+                <AuthSubmit
+                  disabled={!available || checking || !usernameFormatValid}
+                >
                   Continue
                 </AuthSubmit>
               </div>
@@ -167,13 +188,17 @@ export default function SignupPage() {
                 placeholder="Enter password here"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setPasswordTouched(true)}
+                invalid={passwordTouched && !passwordValid}
                 required
-                minLength={8}
               />
+              {(passwordTouched || password.length > 0) && (
+                <PasswordChecklist checks={passwordChecks} />
+              )}
               {error && <p className="text-sm text-red-500">{error}</p>}
               <div className="pb-4 pt-3">
                 <AuthSubmit
-                  disabled={loading || !emailValid || password.length < 8}
+                  disabled={loading || !emailValid || !passwordValid}
                 >
                   {loading ? "Please wait..." : "Continue"}
                 </AuthSubmit>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signTokens } from "@/lib/jwt";
 import { setAuthCookies } from "@/lib/auth-cookies";
+import { isValidEmail, isValidUsername, isStrongPassword } from "@/lib/validation";
 import bcrypt from "bcrypt";
 
 export async function POST(req: NextRequest) {
@@ -12,6 +13,30 @@ export async function POST(req: NextRequest) {
     if (!username || !email || !password) {
       return NextResponse.json(
         { message: "Бүх талбарыг бөглөнө үү" },
+        { status: 400 },
+      );
+    }
+
+    if (!isValidUsername(username)) {
+      return NextResponse.json(
+        { message: "Username буруу форматтай байна (3-20 тэмдэгт, үсэг/тоо/_)" },
+        { status: 400 },
+      );
+    }
+
+    if (!isValidEmail(email)) {
+      return NextResponse.json(
+        { message: "Имэйл хаяг буруу байна" },
+        { status: 400 },
+      );
+    }
+
+    if (!isStrongPassword(password)) {
+      return NextResponse.json(
+        {
+          message:
+            "Нууц үг сул байна. 8+ тэмдэгт, том/жижиг үсэг, тоо, тусгай тэмдэгт шаардлагатай",
+        },
         { status: 400 },
       );
     }

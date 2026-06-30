@@ -143,6 +143,45 @@ export function AuthField({
   );
 }
 
+export function PasswordChecklist({
+  checks,
+}: {
+  checks: { label: string; passed: boolean }[];
+}) {
+  const passedCount = checks.filter((c) => c.passed).length;
+  const strength = (passedCount / checks.length) * 100;
+  const barColor =
+    passedCount <= 2
+      ? "bg-red-500"
+      : passedCount <= 4
+        ? "bg-amber-500"
+        : "bg-green-600";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#e4e4e7]">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+          style={{ width: `${strength}%` }}
+        />
+      </div>
+      <ul className="flex flex-col gap-1">
+        {checks.map((c) => (
+          <li
+            key={c.label}
+            className={`flex items-center gap-1.5 text-xs ${
+              c.passed ? "text-green-600" : "text-[#71717a]"
+            }`}
+          >
+            {c.passed ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+            <span>{c.label}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function AuthSubmit({
   children,
   disabled,

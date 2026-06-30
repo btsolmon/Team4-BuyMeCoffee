@@ -10,18 +10,27 @@ import {
   AuthField,
   AuthSubmit,
 } from "../components/AuthShell";
+import { isValidEmail } from "@/lib/validation";
 
 export default function SigninPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailTouched, setEmailTouched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const emailValid = isValidEmail(email);
 
   const handleSignin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    if (!emailValid) {
+      setEmailTouched(true);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -63,6 +72,14 @@ export default function SigninPage() {
             placeholder="Enter email here"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setEmailTouched(true)}
+            invalid={emailTouched && !emailValid}
+            hint={
+              emailTouched && !emailValid
+                ? "Please enter a valid email"
+                : undefined
+            }
+            hintType="error"
             required
           />
           <AuthField
@@ -84,7 +101,7 @@ export default function SigninPage() {
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="pb-4 pt-3">
-            <AuthSubmit disabled={loading || !email || !password}>
+            <AuthSubmit disabled={loading || !emailValid || !password}>
               {loading ? "Please wait..." : "Continue"}
             </AuthSubmit>
           </div>
