@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const mockPaymentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/pay/${transaction.id}`;
+    const mockPaymentUrl = `https://c3bjc0l1-3000.jpe1.devtunnels.ms/pay/${transaction.id}`;
     const qrCodeUrl = await QRCode.toDataURL(mockPaymentUrl);
 
     return NextResponse.json({
